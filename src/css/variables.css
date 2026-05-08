@@ -1,0 +1,64 @@
+:root {
+  /* Color palette — light mode defaults */
+  --color-bg: #f5f5f4;
+  --color-surface: #ffffff;
+  --color-surface-alt: #e7e5e4;
+  --color-border: #d6d3d1;
+  --color-text: #1c1917;
+  --color-text-muted: #57534e;
+  --color-primary: #1f2937;
+  --color-primary-hover: #111827;
+  --color-primary-contrast: #ffffff;
+  --color-accent: #f59e0b;
+  --color-danger: #b91c1c;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* Typography */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 22px;
+  --font-size-2xl: 28px;
+  --line-height: 1.45;
+
+  /* Layout */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --touch-target: 48px;
+  --header-height: 56px;
+  --max-content-width: 720px;
+
+  /* Effects */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0c0a09;
+    --color-surface: #1c1917;
+    --color-surface-alt: #292524;
+    --color-border: #44403c;
+    --color-text: #f5f5f4;
+    --color-text-muted: #a8a29e;
+    --color-primary: #f5f5f4;
+    --color-primary-hover: #e7e5e4;
+    --color-primary-contrast: #0c0a09;
+    --color-accent: #fbbf24;
+    --color-danger: #ef4444;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.6);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.7);
+  }
+}

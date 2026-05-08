@@ -1,0 +1,148 @@
+/* Section header inside the job detail page */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.section-header h2 {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Side-by-side fields on wider screens */
+.field-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (min-width: 480px) {
+  .field-row {
+    flex-direction: row;
+  }
+  .field-row > .field {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* Daily entry list cards */
+.daily-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.daily-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.08s ease, border-color 0.12s ease;
+  min-height: var(--touch-target);
+}
+
+.daily-card:hover {
+  border-color: var(--color-text-muted);
+}
+
+.daily-card:active {
+  transform: scale(0.99);
+}
+
+.daily-card__date {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.daily-card__contractor {
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+
+.daily-card__weather {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.daily-card__author {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+/* Fieldsets group related inputs (weather AM/PM, workers, equipment) */
+.fieldset {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background-color: var(--color-surface);
+}
+
+.fieldset__legend {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  padding: 0 var(--space-2);
+}
+
+/* Repeater (workers / equipment) */
+.repeater {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.repeater__empty {
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.repeater__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.repeater__row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: stretch;
+}
+
+.repeater__select {
+  flex: 1;
+  min-width: 0;
+}
+
+.repeater__count {
+  width: 84px;
+  flex-shrink: 0;
+  text-align: center;
+  padding: 0 var(--space-2);
+}
+
+.repeater__remove {
+  flex-shrink: 0;
+  padding: 0 var(--space-3);
+  min-width: auto;
+}
+
+/* Plain stacked list used in detail rows for workers/equipment */
+.bare-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
