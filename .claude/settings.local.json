@@ -3,7 +3,13 @@
     "allow": [
       "Bash(npm install *)",
       "Bash(npm view *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(cd c:/Users/Owner/Desktop/GettingStarted/new/code/repos/field-notes && ls -la dist/assets/ | head -10 && echo \"---\" && ls -la dist/icons/ && echo \"---\" && stat -c '%s %n' public/icons/* 2>&1 || ls -la public/icons/)",
+      "Read(//c/Users/Owner/Desktop/GettingStarted/new/code/repos/field-notes/**)",
+      "Bash(git mv *)",
+      "Bash(npm uninstall *)",
+      "Bash(ls \"C:\\\\Users\\\\Owner\\\\.claude\\\\projects\\\\c--Users-Owner-Desktop-GettingStarted-new-code-repos-field-notes\\\\memory\\\\\" 2>&1)",
+      "Read(//c/Users/Owner/.claude/projects/c--Users-Owner-Desktop-GettingStarted-new-code-repos-field-notes/**)"
     ]
   }
 }

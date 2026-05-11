@@ -70,9 +70,16 @@ export default function FieldNotesSection({ jobId, dailyEntryId }) {
     setNotes((prev) => prev.filter((n) => n.id !== noteId))
   }
 
-  function handlePhotosChanged(noteId, photoUrls) {
+  function handlePhotosChanged(noteId, nextOrUpdater) {
     setNotes((prev) =>
-      prev.map((n) => (n.id === noteId ? { ...n, photoUrls } : n))
+      prev.map((n) => {
+        if (n.id !== noteId) return n
+        const next =
+          typeof nextOrUpdater === 'function'
+            ? nextOrUpdater(n.photoUrls || [])
+            : nextOrUpdater
+        return { ...n, photoUrls: next }
+      })
     )
   }
 

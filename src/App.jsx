@@ -1,5 +1,7 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './utils/AuthContext.jsx'
+import { firebaseConfigError } from './firebase/firebase.js'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 import ProtectedRoute from './routes/ProtectedRoute.jsx'
 import AppLayout from './layouts/AppLayout.jsx'
 import LoginPage from './pages/LoginPage.jsx'
@@ -11,31 +13,52 @@ import CreateDailyEntryPage from './pages/CreateDailyEntryPage.jsx'
 import DailyEntryPage from './pages/DailyEntryPage.jsx'
 import EditDailyEntryPage from './pages/EditDailyEntryPage.jsx'
 
-export default function App() {
+function ConfigError({ message }) {
   return (
-    <AuthProvider>
-      <HashRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <AppLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<JobsPage />} />
-            <Route path="jobs/new" element={<CreateJobPage />} />
-            <Route path="jobs/:jobId" element={<JobDetailPage />} />
-            <Route path="jobs/:jobId/edit" element={<EditJobPage />} />
-            <Route path="jobs/:jobId/daily/new" element={<CreateDailyEntryPage />} />
-            <Route path="jobs/:jobId/daily/:dailyEntryId" element={<DailyEntryPage />} />
-            <Route path="jobs/:jobId/daily/:dailyEntryId/edit" element={<EditDailyEntryPage />} />
-          </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </HashRouter>
-    </AuthProvider>
+    <div className="center-screen">
+      <div className="card login-card">
+        <h1 className="login-card__title">App not configured</h1>
+        <p className="text-muted">{message}</p>
+        <p className="text-muted">
+          Set the missing environment variables in your hosting provider and
+          redeploy.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+export default function App() {
+  if (firebaseConfigError) {
+    return <ConfigError message={firebaseConfigError} />
+  }
+
+  return (
+    <ErrorBoundary>
+      <AuthProvider>
+        <HashRouter>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<JobsPage />} />
+              <Route path="jobs/new" element={<CreateJobPage />} />
+              <Route path="jobs/:jobId" element={<JobDetailPage />} />
+              <Route path="jobs/:jobId/edit" element={<EditJobPage />} />
+              <Route path="jobs/:jobId/daily/new" element={<CreateDailyEntryPage />} />
+              <Route path="jobs/:jobId/daily/:dailyEntryId" element={<DailyEntryPage />} />
+              <Route path="jobs/:jobId/daily/:dailyEntryId/edit" element={<EditDailyEntryPage />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </HashRouter>
+      </AuthProvider>
+    </ErrorBoundary>
   )
 }

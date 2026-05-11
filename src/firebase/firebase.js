@@ -2,7 +2,8 @@ import { initializeApp } from 'firebase/app'
 import {
   getAuth,
   GoogleAuthProvider,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged,
   browserLocalPersistence,
@@ -22,12 +23,18 @@ const firebaseConfig = {
 
 const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'appId']
 const missing = requiredKeys.filter((key) => !firebaseConfig[key])
-if (missing.length > 0) {
-  throw new Error(
-    `Missing Firebase env vars: ${missing
-      .map((k) => `VITE_FIREBASE_${k.replace(/([A-Z])/g, '_$1').toUpperCase()}`)
-      .join(', ')}. Copy .env.example to .env.local and fill in your Firebase project values.`
-  )
+export const firebaseConfigError =
+  missing.length > 0
+    ? `Missing Firebase env vars: ${missing
+        .map((k) => `VITE_FIREBASE_${k.replace(/([A-Z])/g, '_$1').toUpperCase()}`)
+        .join(', ')}.`
+    : null
+
+// Surface the misconfiguration but don't throw at module load — a throw here
+// happens before React mounts, leaving a blank white screen with no UI to
+// recover from. The App renders a visible error instead.
+if (firebaseConfigError) {
+  console.error(firebaseConfigError)
 }
 
 export const firebaseApp = initializeApp(firebaseConfig)
@@ -45,8 +52,18 @@ setPersistence(auth, browserLocalPersistence).catch((error) => {
   console.error('Failed to set Firebase auth persistence:', error)
 })
 
+// Redirect (not popup) sign-in so the flow works inside an installed PWA on
+// Android/iOS. Popups in standalone mode often can't open or can't post their
+// result back to the host window, which manifests as a stuck "Signing in…"
+// state or a white screen on relaunch.
 export function signInWithGoogle() {
-  return signInWithPopup(auth, googleProvider)
+  return signInWithRedirect(auth, googleProvider)
+}
+
+// Called once at app start to consume the credential after Firebase has
+// redirected the browser back from accounts.google.com.
+export function consumeRedirectResult() {
+  return getRedirectResult(auth)
 }
 
 export function signOutUser() {

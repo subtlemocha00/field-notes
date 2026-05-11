@@ -69,15 +69,14 @@ export default function FieldNoteItem({
       dailyEntryId: note.dailyEntryId,
       fieldNoteId: note.id
     })
-    onPhotosChanged(note.id, [...note.photoUrls, url])
+    // Delegate the merge to the parent so it can read the latest state.
+    // Using note.photoUrls from this closure can lose concurrent uploads.
+    onPhotosChanged(note.id, (current) => [...current, url])
   }
 
   async function handlePhotoDelete(url) {
     await deleteFieldNotePhoto({ url, fieldNoteId: note.id })
-    onPhotosChanged(
-      note.id,
-      note.photoUrls.filter((u) => u !== url)
-    )
+    onPhotosChanged(note.id, (current) => current.filter((u) => u !== url))
   }
 
   return (

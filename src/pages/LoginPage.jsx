@@ -4,7 +4,7 @@ import { useAuth } from '../utils/AuthContext.jsx'
 import { signInWithGoogle } from '../firebase/firebase.js'
 
 export default function LoginPage() {
-  const { user, isLoading } = useAuth()
+  const { user, isLoading, authError } = useAuth()
   const [error, setError] = useState(null)
   const [isSigningIn, setIsSigningIn] = useState(false)
 
@@ -24,11 +24,13 @@ export default function LoginPage() {
     setError(null)
     setIsSigningIn(true)
     try {
+      // Redirect-based: navigates away to Google. The promise normally
+      // doesn't resolve here — the page reloads and AuthContext picks up
+      // the result via getRedirectResult.
       await signInWithGoogle()
     } catch (err) {
       console.error('Google sign-in failed:', err)
       setError('Sign-in failed. Please try again.')
-    } finally {
       setIsSigningIn(false)
     }
   }
@@ -46,9 +48,11 @@ export default function LoginPage() {
           onClick={handleSignIn}
           disabled={isSigningIn}
         >
-          {isSigningIn ? 'Signing in…' : 'Sign in with Google'}
+          {isSigningIn ? 'Redirecting…' : 'Sign in with Google'}
         </button>
-        {error && <p className="login-card__error">{error}</p>}
+        {(error || authError) && (
+          <p className="login-card__error">{error || authError}</p>
+        )}
       </div>
     </div>
   )
