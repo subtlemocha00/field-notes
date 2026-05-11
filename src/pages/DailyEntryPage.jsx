@@ -8,6 +8,7 @@ import {
 } from '../firebase/dailyEntries.js'
 import { formatDate, formatDateString } from '../utils/format.js'
 import FieldNotesSection from '../components/FieldNotesSection.jsx'
+import SurveySection from '../components/SurveySection.jsx'
 
 function workerLabel(type) {
   return WORKER_TYPE_LABELS[type] || type
@@ -190,12 +191,7 @@ export default function DailyEntryPage() {
 
       <FieldNotesSection jobId={jobId} dailyEntryId={dailyEntryId} />
 
-      <div className="card placeholder-section">
-        <h2>Survey System Coming Later</h2>
-        <p className="text-muted">
-          Survey setup details for this day will appear here.
-        </p>
-      </div>
+      <SurveySection jobId={jobId} dailyEntryId={dailyEntryId} />
     </div>
   )
 }

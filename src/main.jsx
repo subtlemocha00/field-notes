@@ -10,6 +10,7 @@ import './css/jobs.css'
 import './css/daily-entries.css'
 import './css/field-notes.css'
 import './css/photos.css'
+import './css/survey.css'
 
 function FatalError({ message }) {
   return (

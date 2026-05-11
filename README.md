@@ -405,6 +405,97 @@ companies/{companyId}/jobs/{jobId}/dailyEntries/{dailyEntryId}/fieldNotes/{field
 - [ ] No new top-level systems introduced (no galleries, no project-wide media, no editing).
 - [ ] No regression in jobs / daily entries / field notes / auth flows.
 
+## Phase 6 — Survey / Level Book
+
+A digital HI-method level book inside each daily entry. Two new collections — `surveySetups` (instrument setups) and `surveyShots` (BS/FS/TP readings) — and a pure recompute function that derives HI and elevations on render.
+
+### Firestore setup (survey)
+
+Two new collections:
+
+```js
+// surveySetups/{setupId}
+{ companyId, jobId, dailyEntryId,
+  setupName, initialBenchmarkElevation,   // number or null (null = auto-chain)
+  createdAt, updatedAt }
+
+// surveyShots/{shotId}
+{ companyId, jobId, dailyEntryId, surveySetupId,
+  type,           // "BS" | "FS" | "TP"
+  rodReading,     // number
+  description,
+  orderIndex,     // integer, ascending within a setup
+  createdAt, updatedAt }
+```
+
+`calculatedHI` and `calculatedElevation` from the spec are intentionally **not stored** — they are derived in a pure function on every render so they never go stale. (Worth changing later if the values need to be queried from other systems.)
+
+**Security rules** — extend the existing rules:
+
+```text
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /jobs/{jobId}            { allow read, write: if request.auth != null; }
+    match /dailyEntries/{entryId}  { allow read, write: if request.auth != null; }
+    match /fieldNotes/{noteId}     { allow read, write: if request.auth != null; }
+    match /surveySetups/{setupId}  { allow read, write: if request.auth != null; }
+    match /surveyShots/{shotId}    { allow read, write: if request.auth != null; }
+  }
+}
+```
+
+**Composite indexes** required:
+
+| Collection | Fields | Used by |
+| --- | --- | --- |
+| `surveySetups` | `dailyEntryId` ASC + `createdAt` ASC | list setups for a daily entry |
+| `surveyShots`  | `surveySetupId` ASC + `orderIndex` ASC | list shots within a setup |
+
+The first time you open the survey section in dev, Firestore will log a console error containing one-click create-index links.
+
+### Calculation logic (HI method)
+
+Implemented in [`computeSetupShots`](src/firebase/survey.js) and [`computeAllSetups`](src/firebase/survey.js). Per setup, iterate shots in `orderIndex` order:
+
+- **BS** — defines or redefines HI for the current rod position.
+  - `HI = currentElevation + rodReading`
+  - The shot's elevation equals the `currentElevation` it was taken on.
+- **FS** — reads off a different point with the same HI.
+  - `calculatedElevation = HI - rodReading`
+  - `currentElevation` is **not** moved.
+- **TP** — same math as FS, but the rod is now on a new point.
+  - `calculatedElevation = HI - rodReading`
+  - `currentElevation` is moved to that elevation so a subsequent BS chains off it.
+
+**Cross-setup chaining**: when a setup's `initialBenchmarkElevation` is `null` (left blank), the resolver walks backwards through prior setups and uses the most recent TP elevation as the starting point. This implements the spec's "TP acts as BS on next setup" rule without making the user copy values manually. Set the field explicitly to override.
+
+### How to test (survey)
+
+1. Open a daily entry → scroll to **Survey / Level Book**. Empty state shows "No setups yet…".
+2. Tap **Add setup** → name it "Setup 1", set **Initial benchmark elevation** = `100.000` → **Create setup**.
+3. In the new card, tap **Add shot**:
+   - First shot: type **BS**, reading `5.123`, description "BM-1" → **Add shot**.
+   - The card header should now show `BM elev: 100.000 · HI: 105.123`.
+   - The row shows `Elev: 100.000`.
+4. Add a second shot: **FS**, `4.000`, "Stake A" → row shows `Elev: 101.123` (= HI − FS).
+5. Add a third shot: **TP**, `3.000`, "TP-1" → row shows `Elev: 102.123`. Setup HI is unchanged.
+6. Tap **Add setup** again → leave benchmark blank → **Create setup**. The new card header should show `BM elev: 102.123 (auto-chained)`.
+7. Add a **BS** shot of `2.000` in setup 2 → header HI becomes `104.123` (= 102.123 + 2.000).
+8. Edit the first setup's BS reading from `5.123` → `5.500`. Setup 1's HI updates to `105.500`, the TP elevation becomes `102.500`, **and setup 2's auto-chained benchmark updates to `102.500`** with HI `104.500` — the dependency propagates.
+9. Edit a shot, then delete a shot, then delete a whole setup → confirm prompts appear; data updates in Firestore.
+
+### Confirmation checklist (survey)
+
+- [ ] Add setup with explicit benchmark elevation works.
+- [ ] Add second setup with blank benchmark auto-chains from the previous TP.
+- [ ] BS shot defines HI; setup header displays current HI.
+- [ ] FS shot subtracts from HI without moving currentElevation.
+- [ ] TP shot subtracts from HI **and** carries forward to subsequent BS.
+- [ ] Editing any shot or setup recalculates the whole chain on render.
+- [ ] Deleting a setup cascades and removes all its shots in one batch.
+- [ ] Existing jobs / daily entries / field notes / photos still work.
+
 ## What's intentionally not here
 
-The following are **deliberately not built** in this phase: galleries outside field notes, photo tagging or annotations, image editing or cropping, batch uploads, AI labeling, compression pipelines, project-wide media libraries, survey setups, weather APIs, maps, offline sync, dashboards, admin tools, reporting, and email/password auth. Those land in later phases.
+The following are **deliberately not built** in this phase: survey drawings, topo maps, GIS layers, GPS integration, CAD export, PDF reports, Excel export, advanced geodesy (curvature/refraction), stakeout, alignments, galleries outside field notes, photo tagging or editing, batch uploads, AI labeling, project-wide media libraries, weather APIs, offline sync, dashboards, admin tools, and email/password auth. Those are out of scope for V1.

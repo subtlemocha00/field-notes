@@ -35,5 +35,12 @@ export default defineConfig({
         ]
       }
     })
-  ]
+  ],
+  server: {
+    // Option 1: Allow ONLY your ngrok URL (more secure)
+    // allowedHosts: ['your-ngrok-subdomain.ngrok-free.app'],
+
+    // Option 2: Allow ANY host (easier for quick testing)
+    allowedHosts: true,
+  }
 })
