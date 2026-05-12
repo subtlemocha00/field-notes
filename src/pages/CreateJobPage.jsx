@@ -39,7 +39,7 @@ export default function CreateJobPage() {
     <div className="stack">
       <div className="page-title-row">
         <h1>New job</h1>
-        <Link to="/" className="btn btn--secondary">
+        <Link to="/jobs" className="btn btn--secondary">
           Cancel
         </Link>
       </div>

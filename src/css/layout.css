@@ -205,6 +205,33 @@
   text-align: center;
 }
 
+/* Wrapper lets the logo float above the card top border. */
+.login-card-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+}
+
+.login-card__logo {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 120px;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: var(--radius-lg);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Push card content down so the lower half of the logo overlaps
+   the card chrome — never the title or button. */
+.login-card-wrap > .login-card--with-logo {
+  padding-top: calc(var(--space-5) + 60px);
+}
+
 .login-card__title {
   font-family: var(--font-mono);
   font-size: var(--font-size-2xl);

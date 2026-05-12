@@ -41,6 +41,10 @@ export default function JobsPage() {
 
   return (
     <div className="stack">
+      <div>
+        <Link to="/" className="back-link">← Home</Link>
+      </div>
+
       <div className="page-title-row">
         <h1>Jobs</h1>
         <Link to="/jobs/new" className="btn">

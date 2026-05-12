@@ -73,7 +73,7 @@ export default function JobDetailPage() {
     setIsDeleting(true)
     try {
       await deleteJob(jobId)
-      navigate('/', { replace: true })
+      navigate('/jobs', { replace: true })
     } catch (err) {
       console.error('Failed to delete job:', err)
       alert('Failed to delete job. Please try again.')
@@ -91,7 +91,7 @@ export default function JobDetailPage() {
         <div className="card error-card">
           <p>{error}</p>
         </div>
-        <Link to="/" className="btn btn--secondary">
+        <Link to="/jobs" className="btn btn--secondary">
           Back to jobs
         </Link>
       </div>
@@ -101,7 +101,7 @@ export default function JobDetailPage() {
   return (
     <div className="stack">
       <div>
-        <Link to="/" className="back-link">← Back to jobs</Link>
+        <Link to="/jobs" className="back-link">← Back to jobs</Link>
       </div>
 
       <div className="page-title-row">

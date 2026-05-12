@@ -73,7 +73,7 @@ export default function EditJobPage() {
         <div className="card error-card">
           <p>{loadError}</p>
         </div>
-        <Link to="/" className="btn btn--secondary">
+        <Link to="/jobs" className="btn btn--secondary">
           Back to jobs
         </Link>
       </div>

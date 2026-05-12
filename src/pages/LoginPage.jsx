@@ -48,22 +48,30 @@ export default function LoginPage() {
 
   return (
     <div className="center-screen">
-      <div className="card login-card">
-        <div>
-          <h1 className="login-card__title">Field Notes</h1>
-          <p className="text-muted">A field book for construction inspectors.</p>
+      <div className="login-card-wrap">
+        <img
+          src="./icons/icon-512.png"
+          alt=""
+          aria-hidden="true"
+          className="login-card__logo"
+        />
+        <div className="card login-card login-card--with-logo">
+          <div>
+            <h1 className="login-card__title">Field Notes</h1>
+            <p className="text-muted">A field book for construction inspectors.</p>
+          </div>
+          <button
+            type="button"
+            className="btn btn--block"
+            onClick={handleSignIn}
+            disabled={isSigningIn}
+          >
+            {isSigningIn ? 'Signing in…' : 'Sign in with Google'}
+          </button>
+          {(error || authError) && (
+            <p className="login-card__error">{error || authError}</p>
+          )}
         </div>
-        <button
-          type="button"
-          className="btn btn--block"
-          onClick={handleSignIn}
-          disabled={isSigningIn}
-        >
-          {isSigningIn ? 'Signing in…' : 'Sign in with Google'}
-        </button>
-        {(error || authError) && (
-          <p className="login-card__error">{error || authError}</p>
-        )}
       </div>
     </div>
   )

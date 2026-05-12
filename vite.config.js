@@ -8,7 +8,12 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png'],
+      includeAssets: [
+        'icons/favicon-32.png',
+        'icons/icon-192.png',
+        'icons/icon-512.png',
+        'icons/field_notes_logo.png'
+      ],
       manifest: {
         id: '/',
         name: 'Field Notes',
@@ -36,10 +41,10 @@ export default defineConfig({
             type: 'image/png',
             purpose: 'any'
           },
-          // Maskable variants — re-using the same PNGs is acceptable for
-          // installability detection. For pixel-perfect Android adaptive
-          // icons, swap these for source images designed with the
-          // maskable 10% safe-zone padding.
+          // Maskable variants — the logo already includes its own
+          // padding so the same files work for adaptive icons. For
+          // pixel-perfect Android adaptive icons, supply variants
+          // designed with the 10% safe-zone padding.
           {
             src: '/icons/icon-192.png',
             sizes: '192x192',

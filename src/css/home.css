@@ -1,0 +1,282 @@
+/* ============================================================
+   home.css — Landing / home page (Continue Working,
+   Jobs button, Missing Daily Summaries).
+   Mobile-first, field-practical, follows existing token system.
+   ============================================================ */
+
+.home-page {
+  gap: var(--space-4);
+}
+
+/* ── Continue working list ───────────────────────────────── */
+.home-recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.home-recent-secondary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 520px) {
+  .home-recent-secondary {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Base recent card — same warm-paper card vocabulary as job-card */
+.home-recent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-3) var(--space-4);
+  padding-left: calc(var(--space-4) - 1px);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-ink-3);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  min-height: var(--touch-target);
+  text-decoration: none;
+  color: var(--color-text);
+  transition: transform 0.07s ease, border-color 0.12s ease;
+}
+
+.home-recent:hover {
+  border-color: var(--color-text-muted);
+}
+
+.home-recent:active {
+  transform: scale(0.995);
+}
+
+.home-recent__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.home-recent__number {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.home-recent__time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.home-recent__name {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+
+.home-recent__location {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Primary recent card — the most-recent job, visually dominant.
+   Larger type, orange status rule, slightly raised. */
+.home-recent--primary {
+  padding: var(--space-4) var(--space-5);
+  padding-left: calc(var(--space-5) - 2px);
+  border-left: 6px solid var(--color-primary);
+  box-shadow: var(--shadow-md);
+  gap: 6px;
+}
+
+.home-recent--primary .home-recent__name {
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+.home-recent--primary .home-recent__number {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+}
+
+/* ── Jobs button ─────────────────────────────────────────── */
+.home-jobs-btn {
+  min-height: 56px;
+  font-size: var(--font-size-base);
+  letter-spacing: 0.08em;
+}
+
+/* ── Missing daily summaries ─────────────────────────────── */
+.home-missing-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.home-missing {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  padding-left: calc(var(--space-4) - 1px);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  min-height: var(--touch-target);
+  text-decoration: none;
+  color: var(--color-text);
+  transition: transform 0.07s ease, border-color 0.12s ease;
+}
+
+.home-missing:hover {
+  border-color: var(--color-text-muted);
+}
+
+.home-missing:active {
+  transform: scale(0.995);
+}
+
+.home-missing__main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.home-missing__top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.home-missing__number {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.home-missing__date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.home-missing__name {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-missing__count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 56px;
+  padding: 4px 10px;
+  background-color: color-mix(in oklab, var(--color-accent) 22%, white);
+  border: 1px solid color-mix(in oklab, var(--color-accent) 55%, white);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.home-missing__count-num {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-text);
+}
+
+.home-missing__count-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.home-empty-missing {
+  padding: var(--space-5);
+}
+
+/* ── Loading skeleton ────────────────────────────────────── */
+.home-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.home-skeleton__row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 520px) {
+  .home-skeleton__row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.home-skeleton__primary,
+.home-skeleton__secondary,
+.home-skeleton__missing {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  animation: home-skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.home-skeleton__primary {
+  height: 96px;
+  border-left: 6px solid var(--color-border);
+}
+
+.home-skeleton__secondary {
+  height: 72px;
+  border-left: 4px solid var(--color-border);
+}
+
+.home-skeleton__missing {
+  height: 64px;
+  border-left: 4px solid var(--color-border);
+}
+
+@keyframes home-skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}

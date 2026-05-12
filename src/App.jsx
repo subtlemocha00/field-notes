@@ -5,6 +5,7 @@ import ErrorBoundary from './components/ErrorBoundary.jsx'
 import ProtectedRoute from './routes/ProtectedRoute.jsx'
 import AppLayout from './layouts/AppLayout.jsx'
 import LoginPage from './pages/LoginPage.jsx'
+import HomePage from './pages/HomePage.jsx'
 import JobsPage from './pages/JobsPage.jsx'
 import CreateJobPage from './pages/CreateJobPage.jsx'
 import JobDetailPage from './pages/JobDetailPage.jsx'
@@ -47,7 +48,8 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<JobsPage />} />
+              <Route index element={<HomePage />} />
+              <Route path="jobs" element={<JobsPage />} />
               <Route path="jobs/new" element={<CreateJobPage />} />
               <Route path="jobs/:jobId" element={<JobDetailPage />} />
               <Route path="jobs/:jobId/edit" element={<EditJobPage />} />
