@@ -4,6 +4,16 @@ on:
   push:
     branches: [main]
 
+# 🔐 Grant workflow permission to write to gh-pages branch
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# 🚀 Opt into Node.js 24 early to silence deprecation warning
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -14,7 +24,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'  # LTS version - safe for Vite/React/PWA
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
@@ -28,5 +38,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-          # Optional: keep history of deployments (uncomment if desired)
-          # keep_files: true
+          force_orphan: true  # ✅ Clean slate for first deploy
+          keep_files: false   # ✅ Only publish dist/ contents
