@@ -11,7 +11,11 @@
       "Bash(ls \"C:\\\\Users\\\\Owner\\\\.claude\\\\projects\\\\c--Users-Owner-Desktop-GettingStarted-new-code-repos-field-notes\\\\memory\\\\\" 2>&1)",
       "Read(//c/Users/Owner/.claude/projects/c--Users-Owner-Desktop-GettingStarted-new-code-repos-field-notes/**)",
       "Bash(git ls-tree *)",
-      "Bash(grep -o -E \"[a-zA-Z]{1,4}\\\\\\(\\(c,p|c,a\\),new yy\")"
+      "Bash(grep -o -E \"[a-zA-Z]{1,4}\\\\\\(\\(c,p|c,a\\),new yy\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"https://field-notes-v1.vercel.app/manifest.webmanifest\")",
+      "Bash(curl -s \"https://field-notes-v1.vercel.app/manifest.webmanifest\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"https://field-notes-v1.vercel.app/icons/icon-192.png\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"https://field-notes-v1.vercel.app/assets/icons/icon-192.png\")"
     ]
   }
 }

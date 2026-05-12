@@ -24,13 +24,24 @@ export default function LoginPage() {
     setError(null)
     setIsSigningIn(true)
     try {
-      // Redirect-based: navigates away to Google. The promise normally
-      // doesn't resolve here — the page reloads and AuthContext picks up
-      // the result via getRedirectResult.
+      // Popup path resolves here with the credential — AuthContext's
+      // onAuthStateChanged listener will pick it up and unmount this page.
+      // Redirect path (installed PWA) navigates away; this await never
+      // resolves and AuthContext consumes the result on the next load.
       await signInWithGoogle()
     } catch (err) {
       console.error('Google sign-in failed:', err)
-      setError('Sign-in failed. Please try again.')
+      // auth/popup-closed-by-user / auth/cancelled-popup-request are not
+      // real errors — user just dismissed the popup.
+      if (
+        err?.code === 'auth/popup-closed-by-user' ||
+        err?.code === 'auth/cancelled-popup-request'
+      ) {
+        setError(null)
+      } else {
+        const code = err?.code ? ` (${err.code})` : ''
+        setError(`Sign-in failed${code}. Please try again.`)
+      }
       setIsSigningIn(false)
     }
   }
@@ -48,7 +59,7 @@ export default function LoginPage() {
           onClick={handleSignIn}
           disabled={isSigningIn}
         >
-          {isSigningIn ? 'Redirecting…' : 'Sign in with Google'}
+          {isSigningIn ? 'Signing in…' : 'Sign in with Google'}
         </button>
         {(error || authError) && (
           <p className="login-card__error">{error || authError}</p>

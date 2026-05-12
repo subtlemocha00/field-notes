@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app'
 import {
   getAuth,
   GoogleAuthProvider,
+  signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
   signOut,
@@ -30,18 +31,12 @@ export const firebaseConfigError =
         .join(', ')}.`
     : null
 
-// Surface the misconfiguration but don't throw at module load — a throw here
-// happens before React mounts, leaving a blank white screen with no UI to
-// recover from. The App renders a visible error instead.
 if (firebaseConfigError) {
   console.error(firebaseConfigError)
 }
 
 export const firebaseApp = initializeApp(firebaseConfig)
 export const auth = getAuth(firebaseApp)
-// experimentalAutoDetectLongPolling avoids a classic Firestore Web SDK hang
-// where the WebChannel transport stalls on some networks/extensions and
-// addDoc/getDocs never resolve and never reject.
 export const db = initializeFirestore(firebaseApp, {
   experimentalAutoDetectLongPolling: true
 })
@@ -52,16 +47,34 @@ setPersistence(auth, browserLocalPersistence).catch((error) => {
   console.error('Failed to set Firebase auth persistence:', error)
 })
 
-// Redirect (not popup) sign-in so the flow works inside an installed PWA on
-// Android/iOS. Popups in standalone mode often can't open or can't post their
-// result back to the host window, which manifests as a stuck "Signing in…"
-// state or a white screen on relaunch.
-export function signInWithGoogle() {
-  return signInWithRedirect(auth, googleProvider)
+// Hybrid sign-in: popup for normal browsers, redirect only for installed PWAs.
+//
+// Popup avoids two Firebase-Auth-on-Vercel problems: hash routes getting
+// stripped by the redirect handler, and cross-origin storage isolation
+// preventing getRedirectResult from reading the credential out of the
+// firebaseapp.com iframe. Both go away when the popup posts the result
+// back directly to the host window.
+//
+// In an installed standalone PWA, popups can't open or can't post back —
+// so we fall back to redirect there.
+function isStandalonePWA() {
+  if (typeof window === 'undefined') return false
+  if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
+    return true
+  }
+  // iOS legacy flag
+  return window.navigator && window.navigator.standalone === true
 }
 
-// Called once at app start to consume the credential after Firebase has
-// redirected the browser back from accounts.google.com.
+export function signInWithGoogle() {
+  if (isStandalonePWA()) {
+    return signInWithRedirect(auth, googleProvider)
+  }
+  return signInWithPopup(auth, googleProvider)
+}
+
+// Still called once at app start so the standalone-PWA redirect path
+// works. In the popup path this resolves to null and does nothing.
 export function consumeRedirectResult() {
   return getRedirectResult(auth)
 }
