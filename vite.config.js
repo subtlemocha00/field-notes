@@ -10,6 +10,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png'],
       manifest: {
+        id: '/',
         name: 'Field Notes',
         short_name: 'Field Notes',
         description: 'Construction field book for inspectors.',
@@ -17,20 +18,39 @@ export default defineConfig({
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
-        scope: './',
-        start_url: './',
+        scope: '/',
+        start_url: '/',
         icons: [
+          // Installability icons — purpose "any" is what Chrome's
+          // installability checker actually requires. Separate from
+          // maskable so neither classification disqualifies the other.
           {
-            src: 'icons/icon-192.png',
+            src: '/icons/icon-192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
           },
           {
-            src: 'icons/icon-512.png',
+            src: '/icons/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          // Maskable variants — re-using the same PNGs is acceptable for
+          // installability detection. For pixel-perfect Android adaptive
+          // icons, swap these for source images designed with the
+          // maskable 10% safe-zone padding.
+          {
+            src: '/icons/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable'
+          },
+          {
+            src: '/icons/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ]
       }
@@ -41,6 +61,6 @@ export default defineConfig({
     // allowedHosts: ['your-ngrok-subdomain.ngrok-free.app'],
 
     // Option 2: Allow ANY host (easier for quick testing)
-    allowedHosts: true,
+    allowedHosts: true
   }
 })
