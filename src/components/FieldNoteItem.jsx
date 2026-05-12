@@ -7,17 +7,32 @@ import {
 import PhotoUploader from './PhotoUploader.jsx'
 import PhotoGallery from './PhotoGallery.jsx'
 
+// Returns "HH:MM" (24-hour) from a Firestore Timestamp or Date.
+// Kept local to avoid changing the shared format.js utility.
+function shortTime(value) {
+  if (!value) return ''
+  const d = typeof value.toDate === 'function' ? value.toDate() : new Date(value)
+  if (isNaN(d.getTime())) return ''
+  return d.toLocaleTimeString('en', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}
+
 export default function FieldNoteItem({
   note,
   onUpdate,
   onDelete,
-  onPhotosChanged
+  onPhotosChanged,
 }) {
   const [isEditing, setIsEditing] = useState(false)
   const [editText, setEditText] = useState(note.text)
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState(null)
+
+  // ── Handlers (all unchanged from original) ──────────────────
 
   function startEdit() {
     setEditText(note.text)
@@ -67,10 +82,8 @@ export default function FieldNoteItem({
       file,
       jobId: note.jobId,
       dailyEntryId: note.dailyEntryId,
-      fieldNoteId: note.id
+      fieldNoteId: note.id,
     })
-    // Delegate the merge to the parent so it can read the latest state.
-    // Using note.photoUrls from this closure can lose concurrent uploads.
     onPhotosChanged(note.id, (current) => [...current, url])
   }
 
@@ -79,85 +92,105 @@ export default function FieldNoteItem({
     onPhotosChanged(note.id, (current) => current.filter((u) => u !== url))
   }
 
+  // ── Render ───────────────────────────────────────────────────
+
   return (
     <li className="field-note">
-      <div className="field-note__meta">
-        <span className="field-note__time">
-          {formatTimestamp(note.timestamp)}
-        </span>
-        {note.createdByName && (
-          <span className="field-note__author">{note.createdByName}</span>
-        )}
-      </div>
 
-      {!isEditing ? (
-        <div className="field-note__text">{note.text}</div>
-      ) : (
-        <textarea
-          className="input textarea"
-          rows={3}
-          value={editText}
-          onChange={(e) => setEditText(e.target.value)}
-          disabled={isSaving}
-          aria-label="Edit note"
-        />
-      )}
+      {/* ── Time in left gutter ── */}
+      {/* aria-label carries the full timestamp for screen readers */}
+      <span
+        className="field-note__time"
+        aria-label={formatTimestamp(note.timestamp)}
+      >
+        {shortTime(note.timestamp)}
+      </span>
 
-      {error && <p className="form__error">{error}</p>}
+      {/* ── Spine dot ── */}
+      <span className="field-note__dot" aria-hidden="true" />
 
-      <div className="field-note__actions">
+      {/* ── Main body ── */}
+      <div className="field-note__body">
+
+        {/* Note text or edit textarea */}
         {!isEditing ? (
-          <>
-            <button
-              type="button"
-              className="btn btn--secondary field-note__btn"
-              onClick={startEdit}
-              disabled={isDeleting}
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              className="btn btn--danger field-note__btn"
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? 'Deleting…' : 'Delete'}
-            </button>
-          </>
+          <div className="field-note__text">{note.text}</div>
         ) : (
-          <>
-            <button
-              type="button"
-              className="btn field-note__btn"
-              onClick={saveEdit}
-              disabled={isSaving || !editText.trim()}
-            >
-              {isSaving ? 'Saving…' : 'Save'}
-            </button>
-            <button
-              type="button"
-              className="btn btn--secondary field-note__btn"
-              onClick={cancelEdit}
-              disabled={isSaving}
-            >
-              Cancel
-            </button>
-          </>
+          <textarea
+            className="input textarea"
+            rows={3}
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            disabled={isSaving}
+            aria-label="Edit note"
+          />
         )}
-      </div>
 
-      <div className="photos-section">
-        <span className="photos-section__label">Photos</span>
-        <PhotoGallery
-          urls={note.photoUrls}
-          onDelete={handlePhotoDelete}
-          disabled={isDeleting}
-        />
-        <PhotoUploader
-          disabled={isDeleting}
-          onUpload={handlePhotoUpload}
-        />
+        {error && <p className="form__error">{error}</p>}
+
+        {/* Meta row: author + action buttons */}
+        <div className="field-note__meta">
+          {note.createdByName && (
+            <span className="field-note__author">{note.createdByName}</span>
+          )}
+
+          <div className="field-note__actions">
+            {!isEditing ? (
+              <>
+                <button
+                  type="button"
+                  className="btn btn--secondary field-note__btn"
+                  onClick={startEdit}
+                  disabled={isDeleting}
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--danger field-note__btn"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? 'Deleting…' : 'Delete'}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="btn field-note__btn"
+                  onClick={saveEdit}
+                  disabled={isSaving || !editText.trim()}
+                >
+                  {isSaving ? 'Saving…' : 'Save'}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--secondary field-note__btn"
+                  onClick={cancelEdit}
+                  disabled={isSaving}
+                >
+                  Cancel
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Photos (PhotoGallery + PhotoUploader — unchanged) */}
+        <div className="photos-section">
+          <span className="photos-section__label">Photos</span>
+          <PhotoGallery
+            urls={note.photoUrls}
+            onDelete={handlePhotoDelete}
+            disabled={isDeleting}
+          />
+          <PhotoUploader
+            disabled={isDeleting}
+            onUpload={handlePhotoUpload}
+          />
+        </div>
+
       </div>
     </li>
   )

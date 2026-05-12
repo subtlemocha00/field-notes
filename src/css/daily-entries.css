@@ -1,52 +1,45 @@
-/* Section header inside the job detail page */
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-
-.section-header h2 {
-  flex: 1;
-  min-width: 0;
-}
-
-/* Side-by-side fields on wider screens */
+/* ── Side-by-side fields (weather AM/PM conditions + temp) ── */
 .field-row {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
-@media (min-width: 480px) {
+@media (min-width: 420px) {
   .field-row {
     flex-direction: row;
   }
-  .field-row > .field {
+
+  .field-row>.field {
     flex: 1;
     min-width: 0;
   }
 }
 
-/* Daily entry list cards */
+/* ── Daily entry list ── */
 .daily-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
 
+/* ── Daily entry card ──────────────────────────────────────────
+   Grid: [date column 62 px] | [body content]
+   Date column: big day number + mono month/dow
+   Requires the updated DailyEntryCard.jsx (Phase 3).
+   ──────────────────────────────────────────────────────────── */
 .daily-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  padding: var(--space-4);
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  column-gap: 14px;
+  align-items: center;
+  padding: 12px 14px;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  transition: transform 0.08s ease, border-color 0.12s ease;
   min-height: var(--touch-target);
+  transition: transform 0.07s ease, border-color 0.12s ease;
 }
 
 .daily-card:hover {
@@ -54,36 +47,80 @@
 }
 
 .daily-card:active {
-  transform: scale(0.99);
+  transform: scale(0.995);
 }
 
-.daily-card__date {
-  font-size: var(--font-size-lg);
+/* Date column — big day glyph with mono month/dow below */
+.daily-card__date-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0;
+  border-right: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+}
+
+.daily-card__day {
+  font-size: 26px;
   font-weight: 700;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--color-text);
+}
+
+.daily-card__month-dow {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-top: 5px;
+  white-space: nowrap;
+}
+
+/* Body content */
+.daily-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
 }
 
 .daily-card__contractor {
   font-size: var(--font-size-base);
+  /* 15 px */
+  font-weight: 600;
   color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .daily-card__weather {
   font-size: var(--font-size-sm);
+  /* 13 px */
   color: var(--color-text-muted);
 }
 
 .daily-card__author {
-  font-size: var(--font-size-sm);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--color-text-muted);
-  margin-top: var(--space-1);
+  margin-top: 2px;
 }
 
-/* Fieldsets group related inputs (weather AM/PM, workers, equipment) */
+/* ── Fieldset / grouped form section ──────────────────────────
+   Native <fieldset> + <legend> — browser places the legend text
+   floating over the top border. We style it to look intentional:
+   mono label that "breaks" the top border.
+   ──────────────────────────────────────────────────────────── */
 .fieldset {
-  border: 1px solid var(--color-border);
+  border: 1.5px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: var(--space-4);
+  padding: var(--space-3) var(--space-4) var(--space-4);
   margin: 0;
   display: flex;
   flex-direction: column;
@@ -92,13 +129,19 @@
 }
 
 .fieldset__legend {
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
   padding: 0 var(--space-2);
+  /* Sits inline with the fieldset's top border — color matches bg
+     so it "cuts" the border line cleanly */
+  background-color: var(--color-surface);
 }
 
-/* Repeater (workers / equipment) */
+/* ── Repeater (workers + equipment rows) ── */
 .repeater {
   display: flex;
   flex-direction: column;
@@ -107,6 +150,7 @@
 
 .repeater__empty {
   font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
   margin: 0;
 }
 
@@ -127,22 +171,78 @@
   min-width: 0;
 }
 
+/* Count box — narrower than default, monospace for numbers */
 .repeater__count {
-  width: 84px;
+  width: 72px;
   flex-shrink: 0;
   text-align: center;
   padding: 0 var(--space-2);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
 }
 
+/* Remove button — compact ghost, but still 52 px tall for glove use */
 .repeater__remove {
   flex-shrink: 0;
   padding: 0 var(--space-3);
   min-width: auto;
+  min-height: var(--touch-target);
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.06em;
 }
 
-/* Plain stacked list used in detail rows for workers/equipment */
+/* ── Bare list (workers / equipment on detail page) ── */
 .bare-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bare-list li {
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+
+/* ── Crew chip ─────────────────────────────────────────────────
+   Used by DailyEntryPage to show workers/equipment compactly.
+   Optional in Phase 3 — add to Phase 6 DailyEntryPage changes.
+   ──────────────────────────────────────────────────────────── */
+.crew-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.crew-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px 7px 8px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Count badge inside the chip */
+.crew-chip__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  padding: 2px 5px;
+  background-color: var(--color-text);
+  color: var(--color-surface);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
 }

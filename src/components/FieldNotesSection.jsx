@@ -4,7 +4,7 @@ import {
   listFieldNotes,
   createFieldNote,
   updateFieldNote,
-  deleteFieldNote
+  deleteFieldNote,
 } from '../firebase/fieldNotes.js'
 import FieldNoteItem from './FieldNoteItem.jsx'
 
@@ -18,6 +18,8 @@ export default function FieldNotesSection({ jobId, dailyEntryId }) {
   const [newText, setNewText] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
+
+  // ── Load ─────────────────────────────────────────────────────
 
   useEffect(() => {
     let cancelled = false
@@ -35,10 +37,10 @@ export default function FieldNotesSection({ jobId, dailyEntryId }) {
       }
     }
     load()
-    return () => {
-      cancelled = true
-    }
+    return () => { cancelled = true }
   }, [dailyEntryId])
+
+  // ── Mutations (unchanged) ─────────────────────────────────────
 
   async function handleAdd(event) {
     event.preventDefault()
@@ -83,12 +85,43 @@ export default function FieldNotesSection({ jobId, dailyEntryId }) {
     )
   }
 
+  // ── Render ───────────────────────────────────────────────────
+
   return (
     <section className="stack">
+
+      {/* Section heading */}
       <div className="section-header">
         <h2>Field notes</h2>
       </div>
 
+      {/* ── Quick-add form — TOP of section ─────────────────────
+          Form sits above the note list so adding a note never
+          requires scrolling past existing entries.              */}
+      <form className="field-note-form" onSubmit={handleAdd}>
+        <div className="field-note-form__row">
+          <textarea
+            className="input textarea field-note-form__textarea"
+            rows={2}
+            placeholder="Note at this moment…"
+            value={newText}
+            onChange={(e) => setNewText(e.target.value)}
+            disabled={isSaving}
+            aria-label="New field note"
+          />
+          <button
+            type="submit"
+            className="btn field-note-form__submit"
+            disabled={isSaving || !newText.trim()}
+            aria-label="Add note"
+          >
+            {isSaving ? '…' : 'Add'}
+          </button>
+        </div>
+        {saveError && <p className="form__error">{saveError}</p>}
+      </form>
+
+      {/* ── Loading / error states ── */}
       {isLoading && <p className="text-muted">Loading notes…</p>}
 
       {loadError && !isLoading && (
@@ -97,45 +130,30 @@ export default function FieldNotesSection({ jobId, dailyEntryId }) {
         </div>
       )}
 
+      {/* ── Empty state ── */}
       {!isLoading && !loadError && notes.length === 0 && (
-        <p className="text-muted">No field notes yet — add the first one below.</p>
+        <p className="text-muted">
+          No field notes yet — add the first one above.
+        </p>
       )}
 
+      {/* ── Timeline list ── */}
       {!isLoading && !loadError && notes.length > 0 && (
-        <ul className="field-note-list">
-          {notes.map((note) => (
-            <FieldNoteItem
-              key={note.id}
-              note={note}
-              onUpdate={handleUpdate}
-              onDelete={handleDelete}
-              onPhotosChanged={handlePhotosChanged}
-            />
-          ))}
-        </ul>
+        <div className="card" style={{ padding: '8px 14px' }}>
+          <ul className="field-note-list">
+            {notes.map((note) => (
+              <FieldNoteItem
+                key={note.id}
+                note={note}
+                onUpdate={handleUpdate}
+                onDelete={handleDelete}
+                onPhotosChanged={handlePhotosChanged}
+              />
+            ))}
+          </ul>
+        </div>
       )}
 
-      <form className="card field-note-form" onSubmit={handleAdd}>
-        <label className="field">
-          <span className="field__label">New note</span>
-          <textarea
-            className="input textarea"
-            rows={3}
-            placeholder="Quick observation…"
-            value={newText}
-            onChange={(e) => setNewText(e.target.value)}
-            disabled={isSaving}
-          />
-        </label>
-        {saveError && <p className="form__error">{saveError}</p>}
-        <button
-          type="submit"
-          className="btn btn--block"
-          disabled={isSaving || !newText.trim()}
-        >
-          {isSaving ? 'Saving…' : 'Add note'}
-        </button>
-      </form>
     </section>
   )
 }

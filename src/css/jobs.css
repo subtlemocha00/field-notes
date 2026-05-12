@@ -1,4 +1,4 @@
-/* Page header row — title + primary action */
+/* ── Page title row ── */
 .page-title-row {
   display: flex;
   align-items: center;
@@ -12,45 +12,79 @@
   min-width: 0;
 }
 
+/* ── Back link (also in layout.css — this handles job pages specifically) ── */
 .back-link {
-  display: inline-block;
-  min-height: var(--touch-target);
-  line-height: var(--touch-target);
-  font-size: var(--font-size-base);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--color-text-muted);
+  transition: color 0.1s;
 }
 
 .back-link:hover {
   color: var(--color-text);
 }
 
-/* Inputs */
+/* ── Inputs ──────────────────────────────────────────────────
+   Defined here (in jobs.css) as per existing file structure.
+   Used by every form page — create/edit job, create/edit entry.
+   ──────────────────────────────────────────────────────────── */
 .input {
   display: block;
   width: 100%;
   min-height: var(--touch-target);
+  /* 52 px — glove-friendly */
   padding: 0 var(--space-4);
-  font-size: var(--font-size-base);
+  font-size: 16px;
+  /* 16 px prevents iOS auto-zoom */
+  font-weight: 500;
   color: var(--color-text);
   background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1.5px solid var(--color-border);
   border-radius: var(--radius-md);
+  transition: border-color 0.12s, box-shadow 0.12s;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .input:focus {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 1px;
-  border-color: var(--color-accent);
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 20%, transparent);
 }
 
+.input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Select — needs extra right padding for native arrow */
+select.input {
+  padding-right: var(--space-6);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+/* Textarea */
 .input.textarea {
   padding: var(--space-3) var(--space-4);
   resize: vertical;
   min-height: 96px;
   line-height: var(--line-height);
+  font-size: var(--font-size-base);
+  /* textarea: normal size fine */
 }
 
-/* Forms */
+/* ── Form ── */
 .form {
   display: flex;
   flex-direction: column;
@@ -63,15 +97,20 @@
   gap: var(--space-2);
 }
 
+/* Mono micro-caps label — the key typographic signal for field names */
 .field__label {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--color-text-muted);
 }
 
 .form__error {
   color: var(--color-danger);
   font-size: var(--font-size-sm);
+  font-weight: 600;
   margin: 0;
 }
 
@@ -81,7 +120,7 @@
   margin-top: var(--space-2);
 }
 
-/* Action row (Edit / Delete) */
+/* ── Action row (Edit / Delete on detail pages) ── */
 .action-row {
   display: flex;
   gap: var(--space-3);
@@ -90,93 +129,138 @@
 
 .action-row .btn {
   flex: 1;
-  min-width: 140px;
+  min-width: 120px;
 }
 
+/* Danger button (also declared here for pages that only load jobs.css) */
 .btn--danger {
   background-color: var(--color-danger);
   color: #ffffff;
+  border-color: transparent;
 }
 
 .btn--danger:hover {
-  background-color: #991b1b;
+  background-color: #8b1a14;
 }
 
-/* Job list */
+/* ── Job list ── */
 .job-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
 
+/* ── Job card ──────────────────────────────────────────────────
+   Key redesign: colored left-border rule signals job status.
+   Orange = active  (set inline or via a class in Phase 3+)
+   Default = ink/charcoal
+   ──────────────────────────────────────────────────────────── */
 .job-card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-4);
+  gap: 3px;
+  padding: var(--space-3) var(--space-4);
+  padding-left: calc(var(--space-4) - 1px);
+  /* compensate for left border */
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--color-primary);
+  /* STATUS RULE — override per card */
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  transition: transform 0.08s ease, border-color 0.12s ease;
+  transition: transform 0.07s ease, border-left-color 0.12s ease;
   min-height: var(--touch-target);
 }
 
 .job-card:hover {
   border-color: var(--color-text-muted);
+  border-left-color: var(--color-primary);
+  /* keep left rule color on hover */
 }
 
 .job-card:active {
-  transform: scale(0.99);
+  transform: scale(0.995);
 }
 
+/* Header row: job number (left) + date (right) */
 .job-card__header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: var(--space-3);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  margin-bottom: 2px;
 }
 
+/* Mono micro-caps job number — the "license plate" */
 .job-card__number {
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 700;
-  color: var(--color-text);
-  letter-spacing: 0.02em;
-}
-
-.job-card__date {
-  white-space: nowrap;
-}
-
-.job-card__name {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
-}
-
-.job-card__location {
-  font-size: var(--font-size-sm);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--color-text-muted);
 }
 
-/* Job detail */
-.job-detail__number {
-  display: block;
-  font-size: var(--font-size-sm);
-  font-weight: 600;
+/* Mono date */
+.job-card__date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
-  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
+/* Job name — the dominant element on the card */
+.job-card__name {
+  font-size: var(--font-size-lg);
+  /* 17 px */
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+/* Location — muted small text */
+.job-card__location {
+  font-size: var(--font-size-sm);
+  /* 13 px */
+  color: var(--color-text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Job detail page ── */
+/* Job number above title */
+.job-detail__number {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+/* Job name — large display */
 .job-detail__name {
   display: block;
   font-size: var(--font-size-2xl);
+  /* 26 px */
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
 }
 
+/* ── Detail rows (label + value) ── */
 .detail-row {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 3px;
   padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--color-border);
 }
@@ -186,23 +270,28 @@
   border-bottom: none;
 }
 
+/* Mono micro-caps label matches field__label treatment */
 .detail-row__label {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
 }
 
 .detail-row__value {
   font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-text);
 }
 
 .detail-row__value--multiline {
   white-space: pre-wrap;
+  line-height: var(--line-height);
 }
 
-/* Empty / error / placeholder */
+/* ── Empty / error / placeholder states ── */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -210,11 +299,24 @@
   text-align: center;
   gap: var(--space-3);
   padding: var(--space-7) var(--space-5);
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+}
+
+.empty-state h2 {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
 }
 
 .error-card {
   border-color: var(--color-danger);
+  background-color: color-mix(in oklab, var(--color-danger) 6%, white);
+}
+
+.error-card p {
   color: var(--color-danger);
+  font-weight: 600;
 }
 
 .placeholder-section {
@@ -226,6 +328,7 @@
   margin-bottom: var(--space-2);
 }
 
+/* ── Responsive ── */
 @media (min-width: 720px) {
   .job-list {
     gap: var(--space-4);

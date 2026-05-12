@@ -1,62 +1,196 @@
-.field-note-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.field-note {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-4);
+/* ── Quick-add form (at top of section) ─────────────────────── */
+.field-note-form {
   background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-}
-
-.field-note__meta {
+  border: 1.5px solid var(--color-text);
+  /* ink border = notebook feel */
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+  flex-direction: column;
   gap: var(--space-2);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
 }
 
-.field-note__time {
-  font-weight: 600;
+/* Textarea + submit side-by-side, aligned to bottom */
+.field-note-form__row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+}
+
+/* Textarea: no border (sits bare on the card surface) */
+.field-note-form__textarea {
+  flex: 1;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent;
+  min-height: 60px;
+  /* shorter than the 96 px textarea default */
+  padding: 4px 2px;
+  resize: none;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height);
   color: var(--color-text);
 }
 
-.field-note__author {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 50%;
+.field-note-form__textarea:focus {
+  outline: none;
+  box-shadow: none !important;
 }
 
+.field-note-form__textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* Add button */
+.field-note-form__submit {
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+/* ── Timeline list wrapper ───────────────────────────────────── */
+.field-note-list {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 64px;
+  /* gutter width */
+  list-style: none;
+  margin: 0;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+/* Continuous spine line */
+.field-note-list::before {
+  content: "";
+  position: absolute;
+  left: 55px;
+  /* 9 px before li content starts */
+  top: 16px;
+  bottom: 16px;
+  width: 1px;
+  background: var(--color-border);
+  pointer-events: none;
+}
+
+/* ── Individual note ─────────────────────────────────────────── */
+.field-note {
+  position: relative;
+  padding: 10px 0 14px;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.field-note:last-child {
+  border-bottom: none;
+}
+
+/* Time in left gutter */
+.field-note__time {
+  position: absolute;
+  left: -64px;
+  /* back to ul's left edge */
+  top: 11px;
+  width: 52px;
+  /* right edge at -12 px from li */
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text);
+  text-align: right;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+/* Dot on spine */
+.field-note__dot {
+  position: absolute;
+  left: -13px;
+  /* centers 8 px dot on spine at -9 px */
+  top: 15px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Body wraps text, meta row, photos */
+.field-note__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Note text */
 .field-note__text {
   font-size: var(--font-size-base);
-  line-height: var(--line-height);
+  line-height: 1.5;
+  color: var(--color-text);
   white-space: pre-wrap;
   word-break: break-word;
 }
 
+/* Edit-mode textarea (inherits .input.textarea) */
+.field-note__body .input.textarea {
+  margin-top: 2px;
+}
+
+/* Meta row: author (left) + action buttons (right) */
+.field-note__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.field-note__author {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Action buttons in the meta row */
 .field-note__actions {
   display: flex;
   gap: var(--space-2);
-  justify-content: flex-end;
-}
-
-.field-note__btn {
-  min-height: 40px;
-  padding: 0 var(--space-4);
   flex-shrink: 0;
 }
 
-.field-note-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+/* Compact action buttons — still 44 px tall for touch */
+.field-note__btn {
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
+
+/* ── Photos sub-section (below note text) ────────────────────── */
+/* Styles for .photos-section, .photo-grid, etc. live in photos.css
+   and are untouched. We only adjust the top border here.          */
+.photos-section {
+  padding-top: var(--space-2);
+  border-top: 1px dashed var(--color-border);
+  margin-top: var(--space-1);
+}
+
+.photos-section__label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  display: block;
+  margin-bottom: var(--space-2);
 }

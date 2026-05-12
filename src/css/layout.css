@@ -1,3 +1,4 @@
+/* ── App shell ── */
 .app-shell {
   display: flex;
   flex-direction: column;
@@ -5,6 +6,7 @@
   background-color: var(--color-bg);
 }
 
+/* ── App header ── */
 .app-header {
   position: sticky;
   top: 0;
@@ -14,42 +16,177 @@
   justify-content: space-between;
   gap: var(--space-3);
   height: var(--header-height);
+  /* 52 px */
   padding: 0 var(--space-4);
+  padding-top: env(safe-area-inset-top);
   background-color: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
-  padding-top: env(safe-area-inset-top);
 }
 
+/* Brand / title */
+.app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* "FIELD NOTES" in mono micro-caps */
 .app-header__title {
-  font-size: var(--font-size-lg);
+  font-family: var(--font-mono);
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+/* Orange accent bar on the left edge of header (subtle brand mark) */
+.app-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: env(safe-area-inset-top);
+  bottom: 0;
+  width: 3px;
+  background: var(--color-primary);
 }
 
 .app-header__actions {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
+/* User initial avatar circle */
+.app-header__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: var(--color-text);
+  color: var(--color-bg);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* Sign-out: compact ghost button */
+.app-header__signout {
+  font-size: 11px;
+  min-height: 34px;
+  padding: 0 var(--space-3);
+  letter-spacing: 0.08em;
+}
+
+/* Legacy: .app-header__user still resolves (hidden) */
 .app-header__user {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  max-width: 50vw;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: none;
 }
 
+/* ── Main content area ── */
 .app-main {
   flex: 1;
   width: 100%;
   max-width: var(--max-content-width);
   margin: 0 auto;
-  padding: var(--space-5) var(--space-4);
-  padding-bottom: calc(var(--space-5) + env(safe-area-inset-bottom));
+  padding: var(--space-4) var(--space-4);
+  padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom));
 }
 
+/* ── Back link ── */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  /* touch target */
+  padding: 0 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  transition: color 0.1s;
+}
+
+.back-link:hover {
+  color: var(--color-text);
+}
+
+/* ── Page title row ── */
+.page-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.page-title-row h1 {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Section header (used across job detail, daily entry, etc.) ──
+   Renders as: [MONO LABEL] ─────────────────── [action btn]     */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: nowrap;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  margin-top: var(--space-2);
+}
+
+.section-header h2 {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  flex: 0 0 auto;
+  /* don't stretch; let rule grow */
+}
+
+/* Rule between label and action button */
+.section-header::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+  /* Positioned between h2 and the button via normal flex order */
+  order: 1;
+}
+
+/* Push any direct button/link child to after the rule */
+.section-header>a,
+.section-header>button {
+  order: 2;
+  flex-shrink: 0;
+}
+
+.section-header h2 {
+  order: 0;
+}
+
+/* ── Vertical stack helper ── */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  /* 16 px default */
+}
+
+/* ── Center-screen (login, loading, error) ── */
 .center-screen {
   display: flex;
   align-items: center;
@@ -58,9 +195,10 @@
   padding: var(--space-5) var(--space-4);
 }
 
+/* ── Login card ── */
 .login-card {
   width: 100%;
-  max-width: 400px;
+  max-width: 380px;
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
@@ -68,7 +206,11 @@
 }
 
 .login-card__title {
+  font-family: var(--font-mono);
   font-size: var(--font-size-2xl);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .login-card__error {
@@ -76,18 +218,14 @@
   font-size: var(--font-size-sm);
 }
 
-.stack {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
+/* ── Responsive ── */
 @media (min-width: 720px) {
   .app-header {
     padding: 0 var(--space-6);
   }
 
   .app-main {
-    padding: var(--space-6);
+    padding: var(--space-5) var(--space-6);
+    padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom));
   }
 }

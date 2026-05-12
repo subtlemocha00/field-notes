@@ -1,18 +1,78 @@
-:root {
-  /* Color palette — light mode defaults */
-  --color-bg: #f5f5f4;
-  --color-surface: #ffffff;
-  --color-surface-alt: #e7e5e4;
-  --color-border: #d6d3d1;
-  --color-text: #1c1917;
-  --color-text-muted: #57534e;
-  --color-primary: #1f2937;
-  --color-primary-hover: #111827;
-  --color-primary-contrast: #ffffff;
-  --color-accent: #f59e0b;
-  --color-danger: #b91c1c;
+/* ============================================================
+   variables.css — Phase 1 replacement
+   
+   STRATEGY: All original --color-*, --space-*, --font-*, 
+   --radius-*, --shadow-* var NAMES are preserved so every 
+   existing CSS file continues to resolve without changes.
+   New tokens are added alongside (--font-mono, --color-bs, etc.)
+   Dark mode removed (field use is outdoor / always light).
+   ============================================================ */
 
-  /* Spacing */
+:root {
+
+  /* ── Palette ── */
+  /* Warm paper background instead of cool stone */
+  --color-bg: #f1ede4;
+  --color-surface: #ffffff;
+  --color-surface-alt: #ebe6d8;
+  /* was #e7e5e4 */
+
+  --color-border: #cec7b4;
+  /* warm, replaces cool gray */
+  --color-text: #0c1014;
+  /* near-black ink, was #1c1917 */
+  --color-text-muted: #6b7280;
+  /* kept visually similar */
+
+  /* Primary → safety hi-vis orange (one action per screen) */
+  --color-primary: #e85d04;
+  /* was charcoal #1f2937 */
+  --color-primary-hover: #c44a00;
+  --color-primary-contrast: #ffffff;
+
+  --color-accent: #fcb500;
+  /* caution yellow, was amber */
+  --color-danger: #b3261e;
+  /* Material-style red, was #b91c1c */
+
+  /* ── Extended tokens (new — used by later phases) ── */
+  --color-ink-2: #2a3138;
+  --color-ink-3: #4a5260;
+  --color-surface-2: #f6f3ec;
+  --color-surface-3: #ebe6d8;
+  --color-line: #cec7b4;
+  --color-line-2: #b3aa92;
+  --color-success: #166534;
+
+  /* Survey shot-type chips (used in Phase 5) */
+  --color-bs: #1d4ed8;
+  /* backsight  — blue */
+  --color-fs: #4d7c0f;
+  /* foresight  — olive */
+  --color-tp: #b45309;
+  /* turning pt — rust  */
+
+  /* ── Typography ── */
+  /* Archivo: sharp, industrial, legible at arm's length in sun */
+  --font-sans: "Archivo", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", system-ui, sans-serif;
+  /* JetBrains Mono: tabular-nums for every measurement + job number */
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono",
+    Menlo, "Courier New", monospace;
+
+  --font-size-sm: 13px;
+  /* was 14px — tighter label */
+  --font-size-base: 15px;
+  /* was 16px — slightly tighter body */
+  --font-size-lg: 17px;
+  /* was 18px */
+  --font-size-xl: 22px;
+  /* unchanged */
+  --font-size-2xl: 26px;
+  /* was 28px */
+  --line-height: 1.45;
+
+  /* ── Spacing (unchanged — existing layout keeps its rhythm) ── */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -21,44 +81,23 @@
   --space-6: 32px;
   --space-7: 48px;
 
-  /* Typography */
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
-  --font-size-sm: 14px;
-  --font-size-base: 16px;
-  --font-size-lg: 18px;
-  --font-size-xl: 22px;
-  --font-size-2xl: 28px;
-  --line-height: 1.45;
+  /* ── Layout ── */
+  --radius-sm: 4px;
+  /* was 6px — sharper, more tool-like */
+  --radius-md: 6px;
+  /* was 10px */
+  --radius-lg: 10px;
+  /* was 14px */
+  --touch-target: 52px;
+  /* was 48px — glove-friendly */
+  --header-height: 52px;
+  /* was 56px */
+  --max-content-width: 680px;
 
-  /* Layout */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --touch-target: 48px;
-  --header-height: 56px;
-  --max-content-width: 720px;
-
-  /* Effects */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.12);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #0c0a09;
-    --color-surface: #1c1917;
-    --color-surface-alt: #292524;
-    --color-border: #44403c;
-    --color-text: #f5f5f4;
-    --color-text-muted: #a8a29e;
-    --color-primary: #f5f5f4;
-    --color-primary-hover: #e7e5e4;
-    --color-primary-contrast: #0c0a09;
-    --color-accent: #fbbf24;
-    --color-danger: #ef4444;
-
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.6);
-    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.7);
-  }
+  /* ── Elevation ── */
+  /* Flat + directional — matches paper-on-table metaphor */
+  --shadow-sm: 0 1px 0 rgba(12, 16, 20, 0.06),
+    0 1px 2px rgba(12, 16, 20, 0.04);
+  --shadow-md: 0 2px 4px rgba(12, 16, 20, 0.08),
+    0 4px 12px rgba(12, 16, 20, 0.06);
 }
