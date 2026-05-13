@@ -50,7 +50,7 @@ export default function LoginPage() {
     <div className="center-screen">
       <div className="login-card-wrap">
         <img
-          src="./icons/icon-512.png"
+          src="/icons/icon-512.png"
           alt=""
           aria-hidden="true"
           className="login-card__logo"

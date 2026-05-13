@@ -1,13 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../utils/AuthContext.jsx'
 import { todayLocalISO } from '../utils/format.js'
 import {
   createDailyEntry,
-  DuplicateDailyEntryError
+  DuplicateDailyEntryError,
+  getPreviousDailyEntry
 } from '../firebase/dailyEntries.js'
 import WorkerRows from '../components/WorkerRows.jsx'
 import EquipmentRows from '../components/EquipmentRows.jsx'
+import CopyPreviousButton from '../components/CopyPreviousButton.jsx'
 
 export default function CreateDailyEntryPage() {
   const { jobId } = useParams()
@@ -24,6 +26,30 @@ export default function CreateDailyEntryPage() {
 
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState(null)
+
+  // Prefill contractor from the most recent previous daily entry for this job.
+  // Runs once on mount with the initial (today) date. Only fills if the user
+  // hasn't already typed into the field — functional setter keeps the check
+  // race-safe against fast typing.
+  useEffect(() => {
+    let cancelled = false
+    async function prefillContractor() {
+      try {
+        const previous = await getPreviousDailyEntry(jobId, date)
+        if (cancelled) return
+        const value = (previous && previous.contractor) || ''
+        if (!value) return
+        setContractor((current) => (current ? current : value))
+      } catch (err) {
+        console.error('Failed to prefill contractor:', err)
+      }
+    }
+    prefillContractor()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobId])
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -151,6 +177,14 @@ export default function CreateDailyEntryPage() {
 
         <fieldset className="fieldset">
           <legend className="fieldset__legend">Workers</legend>
+          <CopyPreviousButton
+            jobId={jobId}
+            currentDate={date}
+            field="workers"
+            hasCurrentData={workers.length > 0}
+            onCopy={setWorkers}
+            disabled={isSaving}
+          />
           <WorkerRows
             workers={workers}
             onChange={setWorkers}
@@ -160,6 +194,14 @@ export default function CreateDailyEntryPage() {
 
         <fieldset className="fieldset">
           <legend className="fieldset__legend">Equipment</legend>
+          <CopyPreviousButton
+            jobId={jobId}
+            currentDate={date}
+            field="equipment"
+            hasCurrentData={equipment.length > 0}
+            onCopy={setEquipment}
+            disabled={isSaving}
+          />
           <EquipmentRows
             equipment={equipment}
             onChange={setEquipment}

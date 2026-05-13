@@ -3,7 +3,10 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  base: './',
+  // Was './' under HashRouter. BrowserRouter deep links (e.g.
+  // /jobs/123) need absolute asset URLs — otherwise the server-
+  // rewritten index.html resolves ./assets/* against /jobs/ and 404s.
+  base: '/',
   plugins: [
     react(),
     VitePWA({
@@ -14,6 +17,20 @@ export default defineConfig({
         'icons/icon-512.png',
         'icons/field_notes_logo.png'
       ],
+      workbox: {
+        // Belt-and-suspenders for installed-PWA Google sign-in:
+        // make sure the navigation-fallback SW never serves the SPA
+        // shell in place of Firebase's OAuth handler paths. These
+        // are normally on firebaseapp.com (different origin, never
+        // touched by this SW), but if the project ever routes
+        // /__/auth/* through the app domain (e.g. custom auth
+        // domain proxy), this prevents a stale shell from
+        // swallowing the redirect.
+        navigateFallbackDenylist: [
+          /^\/__\/auth\//,
+          /^\/__\/firebase\//
+        ]
+      },
       manifest: {
         id: '/',
         name: 'Field Notes',

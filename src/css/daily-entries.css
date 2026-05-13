@@ -192,6 +192,33 @@
   letter-spacing: 0.06em;
 }
 
+/* ── Copy-previous-day utility button ──────────────────────────
+   Sits just under the Workers / Equipment legend. Visually a
+   secondary/utility action: outlined, full width on small screens
+   so it remains glove-friendly.
+   ──────────────────────────────────────────────────────────── */
+.copy-prev {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.copy-prev__btn {
+  width: 100%;
+}
+
+@media (min-width: 480px) {
+  .copy-prev__btn {
+    width: auto;
+    align-self: flex-start;
+  }
+}
+
+.copy-prev__msg {
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
 /* ── Bare list (workers / equipment on detail page) ── */
 .bare-list {
   display: flex;

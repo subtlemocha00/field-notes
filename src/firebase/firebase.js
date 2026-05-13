@@ -43,40 +43,62 @@ export const db = initializeFirestore(firebaseApp, {
 export const storage = getStorage(firebaseApp)
 export const googleProvider = new GoogleAuthProvider()
 
-setPersistence(auth, browserLocalPersistence).catch((error) => {
-  console.error('Failed to set Firebase auth persistence:', error)
-})
-
-// Hybrid sign-in: popup for normal browsers, redirect only for installed PWAs.
-//
-// Popup avoids two Firebase-Auth-on-Vercel problems: hash routes getting
-// stripped by the redirect handler, and cross-origin storage isolation
-// preventing getRedirectResult from reading the credential out of the
-// firebaseapp.com iframe. Both go away when the popup posts the result
-// back directly to the host window.
-//
-// In an installed standalone PWA, popups can't open or can't post back —
-// so we fall back to redirect there.
-function isStandalonePWA() {
+// ── PWA detection ─────────────────────────────────────────────
+// `display-mode: standalone` is the canonical signal on Android.
+// `navigator.standalone === true` is the legacy iOS flag.
+export function isStandalonePWA() {
   if (typeof window === 'undefined') return false
   if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
     return true
   }
-  // iOS legacy flag
   return window.navigator && window.navigator.standalone === true
 }
 
-export function signInWithGoogle() {
-  if (isStandalonePWA()) {
+// ── Persistence ───────────────────────────────────────────────
+// Persistence is now awaited inside the sign-in flow, NOT at module
+// load. Previously a fire-and-forget setPersistence() at the top of
+// this file could race the redirect handoff: the OAuth round-trip
+// would begin before browserLocalPersistence was installed, so the
+// returning credential had nowhere durable to land.
+let persistenceReady = null
+function ensurePersistence() {
+  if (!persistenceReady) {
+    persistenceReady = setPersistence(auth, browserLocalPersistence).catch(
+      (err) => {
+        console.error('[auth] setPersistence failed', err)
+        persistenceReady = null
+        throw err
+      }
+    )
+  }
+  return persistenceReady
+}
+
+// ── Sign-in ──────────────────────────────────────────────────
+// Hybrid: popup for normal browser tabs, redirect for installed
+// standalone PWAs. Popups can't open from a homescreen-launched
+// PWA window on Android, so redirect is the only path there.
+export async function signInWithGoogle() {
+  await ensurePersistence()
+  const standalone = isStandalonePWA()
+  console.log('[auth] signInWithGoogle standalone=%s', standalone)
+  if (standalone) {
     return signInWithRedirect(auth, googleProvider)
   }
   return signInWithPopup(auth, googleProvider)
 }
 
-// Still called once at app start so the standalone-PWA redirect path
-// works. In the popup path this resolves to null and does nothing.
-export function consumeRedirectResult() {
-  return getRedirectResult(auth)
+// Called once at app startup. Resolves to a UserCredential if the
+// page just returned from an OAuth redirect; resolves to null on
+// every other load. Always safe to await.
+export async function consumeRedirectResult() {
+  await ensurePersistence()
+  const result = await getRedirectResult(auth)
+  console.log(
+    '[auth] consumeRedirectResult result=%s',
+    result ? `user:${result.user?.uid}` : 'null'
+  )
+  return result
 }
 
 export function signOutUser() {

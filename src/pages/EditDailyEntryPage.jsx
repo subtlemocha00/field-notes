@@ -7,6 +7,7 @@ import {
 } from '../firebase/dailyEntries.js'
 import WorkerRows from '../components/WorkerRows.jsx'
 import EquipmentRows from '../components/EquipmentRows.jsx'
+import CopyPreviousButton from '../components/CopyPreviousButton.jsx'
 
 export default function EditDailyEntryPage() {
   const { jobId, dailyEntryId } = useParams()
@@ -209,6 +210,14 @@ export default function EditDailyEntryPage() {
 
         <fieldset className="fieldset">
           <legend className="fieldset__legend">Workers</legend>
+          <CopyPreviousButton
+            jobId={jobId}
+            currentDate={date}
+            field="workers"
+            hasCurrentData={workers.length > 0}
+            onCopy={setWorkers}
+            disabled={isSaving}
+          />
           <WorkerRows
             workers={workers}
             onChange={setWorkers}
@@ -218,6 +227,14 @@ export default function EditDailyEntryPage() {
 
         <fieldset className="fieldset">
           <legend className="fieldset__legend">Equipment</legend>
+          <CopyPreviousButton
+            jobId={jobId}
+            currentDate={date}
+            field="equipment"
+            hasCurrentData={equipment.length > 0}
+            onCopy={setEquipment}
+            disabled={isSaving}
+          />
           <EquipmentRows
             equipment={equipment}
             onChange={setEquipment}

@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './utils/AuthContext.jsx'
 import { firebaseConfigError } from './firebase/firebase.js'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
@@ -37,7 +37,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <HashRouter>
+        <BrowserRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route
@@ -59,7 +59,7 @@ export default function App() {
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </HashRouter>
+        </BrowserRouter>
       </AuthProvider>
     </ErrorBoundary>
   )

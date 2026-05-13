@@ -129,7 +129,7 @@ export default function HomePage() {
       )}
 
       <Link to="/jobs" className="btn btn--block home-jobs-btn">
-        Jobs
+        All Jobs
       </Link>
 
       {isLoading && (

@@ -9,19 +9,54 @@ export function AuthProvider({ children }) {
   const [authError, setAuthError] = useState(null)
 
   useEffect(() => {
-    // The redirect-based sign-in returns the user via getRedirectResult on
-    // the very next page load. Run it once at startup so the credential is
-    // applied before we start watching auth state.
-    consumeRedirectResult().catch((err) => {
-      console.error('Redirect sign-in failed:', err)
-      setAuthError(err?.message || 'Sign-in failed')
-    })
+    let cancelled = false
+    let unsubscribe = null
 
-    const unsubscribe = subscribeToAuth((firebaseUser) => {
-      setUser(firebaseUser)
-      setIsLoading(false)
-    })
-    return unsubscribe
+    // CRITICAL ORDERING — fixes the standalone-PWA login race.
+    //
+    // Old code fired consumeRedirectResult() without awaiting it, then
+    // immediately subscribed to onAuthStateChanged. The listener's
+    // first synchronous-ish callback would land with user=null, flip
+    // isLoading to false, and ProtectedRoute would bounce to /login —
+    // all before the OAuth credential had been processed. On Android
+    // standalone PWAs, the second auth-state callback that should
+    // follow sometimes never arrived because the OAuth bounce had
+    // partitioned IndexedDB.
+    //
+    // New ordering:
+    //   1. Await getRedirectResult — Firebase processes the redirect
+    //      credential AND completes its initial IndexedDB restoration.
+    //   2. THEN attach onAuthStateChanged — its first callback now
+    //      reflects the post-redirect / restored user.
+    //   3. THEN flip isLoading=false. Protected routes never make a
+    //      decision on partial state.
+    async function init() {
+      console.log('[auth] init start')
+      try {
+        await consumeRedirectResult()
+      } catch (err) {
+        console.error('[auth] redirect sign-in failed', err)
+        if (!cancelled) setAuthError(err?.message || 'Sign-in failed')
+      }
+      if (cancelled) return
+
+      unsubscribe = subscribeToAuth((firebaseUser) => {
+        console.log(
+          '[auth] onAuthStateChanged user=%s',
+          firebaseUser ? firebaseUser.uid : 'null'
+        )
+        if (cancelled) return
+        setUser(firebaseUser)
+        setIsLoading(false)
+      })
+    }
+
+    init()
+
+    return () => {
+      cancelled = true
+      if (unsubscribe) unsubscribe()
+    }
   }, [])
 
   return (

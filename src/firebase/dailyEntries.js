@@ -180,6 +180,22 @@ async function findEntryByDate(jobId, date) {
   return result.docs[0] || null
 }
 
+// Find the closest earlier daily entry (chronologically) for the same job.
+// Date strings are ISO `YYYY-MM-DD`, so lexical ordering matches date ordering.
+export async function getPreviousDailyEntry(jobId, currentDate) {
+  if (!jobId || !currentDate) return null
+  const q = query(
+    dailyEntriesCollection,
+    where('jobId', '==', jobId),
+    where('date', '<', currentDate),
+    orderBy('date', 'desc'),
+    limit(1)
+  )
+  const result = await getDocs(q)
+  const snapshot = result.docs[0]
+  return snapshot ? mapEntry(snapshot) : null
+}
+
 // ---------- Mutations ----------
 
 export async function createDailyEntry(jobId, fields, user) {
