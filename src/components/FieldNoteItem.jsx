@@ -136,24 +136,14 @@ export default function FieldNoteItem({
 
           <div className="field-note__actions">
             {!isEditing ? (
-              <>
-                <button
-                  type="button"
-                  className="btn btn--secondary field-note__btn"
-                  onClick={startEdit}
-                  disabled={isDeleting}
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--danger field-note__btn"
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? 'Deleting…' : 'Delete'}
-                </button>
-              </>
+              <button
+                type="button"
+                className="btn btn--secondary field-note__btn"
+                onClick={startEdit}
+                disabled={isDeleting}
+              >
+                Edit
+              </button>
             ) : (
               <>
                 <button
@@ -172,22 +162,32 @@ export default function FieldNoteItem({
                 >
                   Cancel
                 </button>
+                <button
+                  type="button"
+                  className="btn btn--danger field-note__btn"
+                  onClick={handleDelete}
+                  disabled={isDeleting || isSaving}
+                >
+                  {isDeleting ? 'Deleting…' : 'Delete'}
+                </button>
               </>
             )}
           </div>
         </div>
 
-        {/* Photos (PhotoGallery + PhotoUploader — unchanged) */}
+        {/* Photos (PhotoGallery + PhotoUploader) */}
         <div className="photos-section">
-          <span className="photos-section__label">Photos</span>
+          <div className="photos-section__header">
+            <span className="photos-section__label">Photos</span>
+            <PhotoUploader
+              disabled={isDeleting}
+              onUpload={handlePhotoUpload}
+            />
+          </div>
           <PhotoGallery
             urls={note.photoUrls}
             onDelete={handlePhotoDelete}
             disabled={isDeleting}
-          />
-          <PhotoUploader
-            disabled={isDeleting}
-            onUpload={handlePhotoUpload}
           />
         </div>
 

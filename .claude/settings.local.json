@@ -16,7 +16,9 @@
       "Bash(curl -s \"https://field-notes-v1.vercel.app/manifest.webmanifest\")",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"https://field-notes-v1.vercel.app/icons/icon-192.png\")",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"https://field-notes-v1.vercel.app/assets/icons/icon-192.png\")",
-      "Bash(curl -sI \"https://field-notes-v1.vercel.app/manifest.webmanifest\")"
+      "Bash(curl -sI \"https://field-notes-v1.vercel.app/manifest.webmanifest\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\sk8_c\\\\OneDrive\\\\Desktop\\\\Coding\\\\field-notes\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)"
     ]
   }
 }

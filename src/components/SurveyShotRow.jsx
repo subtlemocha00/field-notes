@@ -121,6 +121,14 @@ export default function SurveyShotRow({ shot, onSave, onDelete }) {
           >
             Cancel
           </button>
+          <button
+            type="button"
+            className="btn btn--danger shot-row__btn"
+            onClick={handleDelete}
+            disabled={isDeleting || isSaving}
+          >
+            {isDeleting ? 'Deleting…' : 'Delete'}
+          </button>
         </div>
       </li>
     )
@@ -134,7 +142,7 @@ export default function SurveyShotRow({ shot, onSave, onDelete }) {
         </span>
         <span className="shot-row__reading">{formatNumber(shot.rodReading)}</span>
         <span className="shot-row__elev">
-          Elev: <strong>{formatNumber(shot.calculatedElevation)}</strong>
+          <strong>{formatNumber(shot.calculatedElevation)}</strong>
         </span>
         {shot.description && (
           <span className="shot-row__desc">{shot.description}</span>
@@ -152,14 +160,6 @@ export default function SurveyShotRow({ shot, onSave, onDelete }) {
           disabled={isDeleting}
         >
           Edit
-        </button>
-        <button
-          type="button"
-          className="btn btn--danger shot-row__btn"
-          onClick={handleDelete}
-          disabled={isDeleting}
-        >
-          {isDeleting ? 'Deleting…' : 'Delete'}
         </button>
       </div>
     </li>

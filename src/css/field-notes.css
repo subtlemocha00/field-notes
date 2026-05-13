@@ -92,8 +92,8 @@
   left: -64px;
   /* back to ul's left edge */
   top: 11px;
-  width: 52px;
-  /* right edge at -12 px from li */
+  width: 40px;
+  /* narrowed to reduce left padding ~50% and open gap to dot */
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-size: 12px;

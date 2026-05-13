@@ -5,7 +5,7 @@ export default function PhotoGallery({ urls, onDelete, disabled }) {
   const [pendingDelete, setPendingDelete] = useState(null)
 
   if (!urls || urls.length === 0) {
-    return <p className="text-muted photo-gallery__empty">No photos.</p>
+    return null
   }
 
   async function handleDelete(url) {

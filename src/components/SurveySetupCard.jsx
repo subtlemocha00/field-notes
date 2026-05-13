@@ -193,24 +193,14 @@ export default function SurveySetupCard({
 
       <div className="survey-setup__actions">
         {!isEditing ? (
-          <>
-            <button
-              type="button"
-              className="btn btn--secondary"
-              onClick={startEdit}
-              disabled={isDeleting}
-            >
-              Edit setup
-            </button>
-            <button
-              type="button"
-              className="btn btn--danger"
-              onClick={handleDeleteSetup}
-              disabled={isDeleting}
-            >
-              {isDeleting ? 'Deleting…' : 'Delete setup'}
-            </button>
-          </>
+          <button
+            type="button"
+            className="btn btn--secondary"
+            onClick={startEdit}
+            disabled={isDeleting}
+          >
+            Edit setup
+          </button>
         ) : (
           <>
             <button
@@ -228,6 +218,14 @@ export default function SurveySetupCard({
               disabled={isSaving}
             >
               Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn--danger"
+              onClick={handleDeleteSetup}
+              disabled={isDeleting || isSaving}
+            >
+              {isDeleting ? 'Deleting…' : 'Delete setup'}
             </button>
           </>
         )}
