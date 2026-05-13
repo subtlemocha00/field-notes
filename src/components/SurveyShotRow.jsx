@@ -13,6 +13,11 @@ export default function SurveyShotRow({ shot, onSave, onDelete }) {
     shot.rodReading != null ? String(shot.rodReading) : ''
   )
   const [description, setDescription] = useState(shot.description || '')
+  const [isPipe, setIsPipe] = useState(!!shot.isPipe)
+  const [pipeMode, setPipeMode] = useState(shot.pipeMode || 'invert')
+  const [pipeDiameter, setPipeDiameter] = useState(
+    shot.pipeDiameter != null ? String(shot.pipeDiameter) : ''
+  )
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState(null)
@@ -21,6 +26,9 @@ export default function SurveyShotRow({ shot, onSave, onDelete }) {
     setType(shot.type || 'FS')
     setRodReading(shot.rodReading != null ? String(shot.rodReading) : '')
     setDescription(shot.description || '')
+    setIsPipe(!!shot.isPipe)
+    setPipeMode(shot.pipeMode || 'invert')
+    setPipeDiameter(shot.pipeDiameter != null ? String(shot.pipeDiameter) : '')
     setIsEditing(true)
     setError(null)
   }
@@ -29,6 +37,10 @@ export default function SurveyShotRow({ shot, onSave, onDelete }) {
     setIsEditing(false)
     setError(null)
   }
+
+  // Pipe controls only apply to FS shots. Flipping away from FS
+  // implicitly disables pipe so we never persist orphan pipe data.
+  const effectiveIsPipe = type === 'FS' && isPipe
 
   async function saveEdit() {
     if (!rodReading.trim()) {
@@ -40,10 +52,34 @@ export default function SurveyShotRow({ shot, onSave, onDelete }) {
       setError('Invalid rod reading.')
       return
     }
+    let diameter = null
+    if (effectiveIsPipe) {
+      if (pipeMode === 'obvert') {
+        if (!pipeDiameter.trim()) {
+          setError('Pipe diameter is required for obvert mode.')
+          return
+        }
+      }
+      if (pipeDiameter.trim() !== '') {
+        const d = Number(pipeDiameter)
+        if (!Number.isFinite(d) || d <= 0) {
+          setError('Pipe diameter must be a positive number.')
+          return
+        }
+        diameter = d
+      }
+    }
     setIsSaving(true)
     setError(null)
     try {
-      await onSave(shot.id, { type, rodReading: num, description })
+      await onSave(shot.id, {
+        type,
+        rodReading: num,
+        description,
+        isPipe: effectiveIsPipe,
+        pipeMode: effectiveIsPipe ? pipeMode : 'invert',
+        pipeDiameter: effectiveIsPipe ? diameter : null
+      })
       setIsEditing(false)
     } catch (err) {
       console.error('Failed to save shot:', err)
@@ -103,6 +139,51 @@ export default function SurveyShotRow({ shot, onSave, onDelete }) {
             aria-label="Description"
           />
         </div>
+
+        {type === 'FS' && (
+          <div className="pipe-controls">
+            <label className="pipe-controls__toggle">
+              <input
+                type="checkbox"
+                checked={isPipe}
+                onChange={(e) => setIsPipe(e.target.checked)}
+                disabled={isSaving}
+              />
+              <span>PIPE</span>
+            </label>
+            {isPipe && (
+              <div className="pipe-controls__row">
+                <select
+                  className="input pipe-controls__mode"
+                  value={pipeMode}
+                  onChange={(e) => setPipeMode(e.target.value)}
+                  disabled={isSaving}
+                  aria-label="Pipe mode"
+                >
+                  <option value="invert">Invert</option>
+                  <option value="obvert">Obvert</option>
+                </select>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.001"
+                  min="0"
+                  className="input pipe-controls__diameter"
+                  placeholder={
+                    pipeMode === 'obvert'
+                      ? 'Pipe diameter (required)'
+                      : 'Pipe diameter (optional)'
+                  }
+                  value={pipeDiameter}
+                  onChange={(e) => setPipeDiameter(e.target.value)}
+                  disabled={isSaving}
+                  aria-label="Pipe diameter"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
         {error && <p className="form__error">{error}</p>}
         <div className="shot-row__actions">
           <button
@@ -140,17 +221,34 @@ export default function SurveyShotRow({ shot, onSave, onDelete }) {
         <span className={`shot-row__type-badge shot-row__type-badge--${shot.type}`}>
           {shot.type}
         </span>
-        <span className="shot-row__reading">{formatNumber(shot.rodReading)}</span>
-        <span className="shot-row__elev">
-          <strong>{formatNumber(shot.calculatedElevation)}</strong>
+        <span className="shot-row__reading">
+          <span className="shot-row__elev-label">ROD</span>
+          <strong>{formatNumber(shot.rodReading)}</strong>
         </span>
-        {shot.description && (
-          <span className="shot-row__desc">{shot.description}</span>
+        {shot.isPipe ? (
+          <>
+            <span className="shot-row__elev shot-row__elev--obvert">
+              <span className="shot-row__elev-label">OBV</span>
+              <strong>{formatNumber(shot.calculatedObvert)}</strong>
+            </span>
+            <span className="shot-row__elev shot-row__elev--invert">
+              <span className="shot-row__elev-label">INV</span>
+              <strong>{formatNumber(shot.calculatedInvert)}</strong>
+            </span>
+          </>
+        ) : (
+          <span className="shot-row__elev">
+            <span className="shot-row__elev-label">ELEV</span>
+            <strong>{formatNumber(shot.calculatedElevation)}</strong>
+          </span>
         )}
         {shot._error && (
           <span className="shot-row__warn">{shot._error}</span>
         )}
       </div>
+      {shot.description && (
+        <div className="shot-row__desc-row">{shot.description}</div>
+      )}
       {error && <p className="form__error">{error}</p>}
       <div className="shot-row__actions">
         <button

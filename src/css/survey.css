@@ -66,10 +66,32 @@
   background-color: var(--color-surface);
 }
 
+/* Display-mode shot rows lay out as a 2-row grid at every width:
+     [ display ............... ] [ Edit ]
+     [ description ................... ]
+   Edit-mode rows keep the column flex layout above so input
+   fields stack vertically with room to breathe. */
+.shot-row:not(.shot-row--edit) {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "display actions"
+    "desc    desc";
+  align-items: center;
+  column-gap: var(--space-3);
+  row-gap: var(--space-2);
+}
+
+.shot-row:not(.shot-row--edit) > .shot-row__display { grid-area: display; }
+.shot-row:not(.shot-row--edit) > .shot-row__actions { grid-area: actions; }
+.shot-row:not(.shot-row--edit) > .shot-row__desc-row { grid-area: desc; }
+.shot-row:not(.shot-row--edit) > .form__error { grid-column: 1 / -1; }
+
 .shot-row__display {
   display: flex;
-  flex-wrap: wrap;
+  /* flex-wrap: wrap; */
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
   font-size: var(--font-size-base);
 }
@@ -105,26 +127,44 @@
   color: #ffffff;
 }
 
+/* Rod reading — column layout with a small "ROD" label above the
+   number. Same shape as the OBV / INV cells so the row reads as a
+   clean grid of labeled values across all screen widths. */
 .shot-row__reading {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
-  min-width: 80px;
+  min-width: 60px;
+  text-align: center;
+  line-height: 1.15;
 }
 
 .shot-row__elev {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
   font-variant-numeric: tabular-nums;
   color: var(--color-text-muted);
+  min-width: 90px;
+  text-align: center;
+  line-height: 1.15;
 }
 
 .shot-row__elev strong {
   color: var(--color-text);
 }
 
-.shot-row__desc {
-  flex: 1;
-  min-width: 0;
+/* Description sits on its own row along the bottom of the shot
+   card, separated from the values by a subtle dashed line. */
+.shot-row__desc-row {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+  padding-top: var(--space-2);
+  border-top: 1px dashed var(--color-border);
 }
 
 .shot-row__warn {
@@ -163,4 +203,93 @@
 .shot-row__btn {
   min-height: 40px;
   padding: 0 var(--space-3);
+}
+
+/* ── Pipe-mode display (FS shots only) ──
+   "OBV / INV" elevation cells use the same column layout as the
+   ROD cell — small mono label centered above the value — so the
+   shot row reads as a clean grid of labeled values at every width. */
+.shot-row__elev--obvert,
+.shot-row__elev--invert {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  min-width: 90px;
+  text-align: center;
+  line-height: 1.15;
+}
+
+.shot-row__elev-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* ── Pipe-mode inputs (edit + add-shot drafts) ── */
+.pipe-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) 0 0;
+  border-top: 1px dashed var(--color-border);
+}
+
+.pipe-controls__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  min-height: 40px;
+}
+
+.pipe-controls__toggle input[type='checkbox'] {
+  width: 22px;
+  height: 22px;
+}
+
+.pipe-controls__row {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.pipe-controls__mode {
+  width: 110px;
+  flex-shrink: 0;
+}
+
+.pipe-controls__diameter {
+  flex: 1;
+  min-width: 140px;
+}
+
+/* ── Mobile shot rows (≤520 px) ──────────────────────────────
+   The 2-row grid + Edit-on-the-right layout lives in the base
+   rule above and applies at every width. The only mobile-specific
+   bits are full-bleed alignment to the screen edges and a
+   `min-width: 0` so cells shrink to their content on narrow
+   phones (the desktop min-widths would overflow at 320 px).
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .shot-row {
+    margin-left: calc(-1 * var(--space-5));
+    margin-right: calc(-1 * var(--space-5));
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+  }
+
+  .shot-row__reading,
+  .shot-row__elev,
+  .shot-row__elev--obvert,
+  .shot-row__elev--invert {
+    min-width: 0;
+  }
 }

@@ -127,3 +127,18 @@ p {
   padding: var(--space-5);
   box-shadow: var(--shadow-sm);
 }
+
+/* ── Mobile full-bleed (≤520 px) ──
+   Cards inside the main app shell extend to the screen edges so
+   content fits better on small phones. Side borders + radius are
+   dropped so the edge looks intentional. The login card lives in
+   `.center-screen`, not `.app-main`, so it's untouched. */
+@media (max-width: 520px) {
+  .app-main .card {
+    margin-left: calc(-1 * var(--space-4));
+    margin-right: calc(-1 * var(--space-4));
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
+}

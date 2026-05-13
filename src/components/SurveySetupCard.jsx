@@ -31,8 +31,13 @@ export default function SurveySetupCard({
   const [draftType, setDraftType] = useState('FS')
   const [draftReading, setDraftReading] = useState('')
   const [draftDesc, setDraftDesc] = useState('')
+  const [draftIsPipe, setDraftIsPipe] = useState(false)
+  const [draftPipeMode, setDraftPipeMode] = useState('invert')
+  const [draftPipeDiameter, setDraftPipeDiameter] = useState('')
   const [isSavingShot, setIsSavingShot] = useState(false)
   const [shotError, setShotError] = useState(null)
+
+  const draftIsPipeEffective = draftType === 'FS' && draftIsPipe
 
   function startEdit() {
     setSetupName(setup.setupName || '')
@@ -97,6 +102,9 @@ export default function SurveySetupCard({
     setDraftType(computed.shots.length === 0 ? 'BS' : 'FS')
     setDraftReading('')
     setDraftDesc('')
+    setDraftIsPipe(false)
+    setDraftPipeMode('invert')
+    setDraftPipeDiameter('')
     setIsAddingShot(true)
     setShotError(null)
   }
@@ -116,6 +124,21 @@ export default function SurveySetupCard({
       setShotError('Invalid rod reading.')
       return
     }
+    let diameter = null
+    if (draftIsPipeEffective) {
+      if (draftPipeMode === 'obvert' && !draftPipeDiameter.trim()) {
+        setShotError('Pipe diameter is required for obvert mode.')
+        return
+      }
+      if (draftPipeDiameter.trim() !== '') {
+        const d = Number(draftPipeDiameter)
+        if (!Number.isFinite(d) || d <= 0) {
+          setShotError('Pipe diameter must be a positive number.')
+          return
+        }
+        diameter = d
+      }
+    }
     setIsSavingShot(true)
     setShotError(null)
     try {
@@ -127,11 +150,17 @@ export default function SurveySetupCard({
         type: draftType,
         rodReading: num,
         description: draftDesc,
-        orderIndex: maxIndex + 1
+        orderIndex: maxIndex + 1,
+        isPipe: draftIsPipeEffective,
+        pipeMode: draftIsPipeEffective ? draftPipeMode : 'invert',
+        pipeDiameter: draftIsPipeEffective ? diameter : null
       })
       setIsAddingShot(false)
       setDraftReading('')
       setDraftDesc('')
+      setDraftIsPipe(false)
+      setDraftPipeMode('invert')
+      setDraftPipeDiameter('')
     } catch (err) {
       console.error('Failed to add shot:', err)
       setShotError('Failed to add shot')
@@ -285,6 +314,51 @@ export default function SurveySetupCard({
                   aria-label="Description"
                 />
               </div>
+
+              {draftType === 'FS' && (
+                <div className="pipe-controls">
+                  <label className="pipe-controls__toggle">
+                    <input
+                      type="checkbox"
+                      checked={draftIsPipe}
+                      onChange={(e) => setDraftIsPipe(e.target.checked)}
+                      disabled={isSavingShot}
+                    />
+                    <span>PIPE</span>
+                  </label>
+                  {draftIsPipe && (
+                    <div className="pipe-controls__row">
+                      <select
+                        className="input pipe-controls__mode"
+                        value={draftPipeMode}
+                        onChange={(e) => setDraftPipeMode(e.target.value)}
+                        disabled={isSavingShot}
+                        aria-label="Pipe mode"
+                      >
+                        <option value="invert">Invert</option>
+                        <option value="obvert">Obvert</option>
+                      </select>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        step="0.001"
+                        min="0"
+                        className="input pipe-controls__diameter"
+                        placeholder={
+                          draftPipeMode === 'obvert'
+                            ? 'Pipe diameter (required)'
+                            : 'Pipe diameter (optional)'
+                        }
+                        value={draftPipeDiameter}
+                        onChange={(e) => setDraftPipeDiameter(e.target.value)}
+                        disabled={isSavingShot}
+                        aria-label="Pipe diameter"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
               {shotError && <p className="form__error">{shotError}</p>}
               <div className="shot-row__actions">
                 <button

@@ -18,6 +18,7 @@ const surveySetupsCollection = collection(db, 'surveySetups')
 const surveyShotsCollection = collection(db, 'surveyShots')
 
 export const SHOT_TYPES = ['BS', 'FS', 'TP']
+export const PIPE_MODES = ['invert', 'obvert']
 
 function toNumberOrNull(v) {
   if (v === '' || v == null) return null
@@ -41,18 +42,40 @@ function mapSetup(snapshot) {
 
 function mapShot(snapshot) {
   const data = snapshot.data()
+  const type = SHOT_TYPES.includes(data.type) ? data.type : 'FS'
+  // Pipe fields are only meaningful on FS shots. Legacy shots without
+  // these fields read as non-pipe — full backward compatibility.
+  const isPipe = type === 'FS' && data.isPipe === true
+  const pipeMode = PIPE_MODES.includes(data.pipeMode) ? data.pipeMode : 'invert'
   return {
     id: snapshot.id,
     companyId: data.companyId,
     jobId: data.jobId,
     dailyEntryId: data.dailyEntryId,
     surveySetupId: data.surveySetupId,
-    type: SHOT_TYPES.includes(data.type) ? data.type : 'FS',
+    type,
     rodReading: toNumberOrNull(data.rodReading),
     description: typeof data.description === 'string' ? data.description : '',
     orderIndex: typeof data.orderIndex === 'number' ? data.orderIndex : 0,
+    isPipe,
+    pipeMode: isPipe ? pipeMode : 'invert',
+    pipeDiameter: isPipe ? toNumberOrNull(data.pipeDiameter) : null,
     createdAt: data.createdAt,
     updatedAt: data.updatedAt
+  }
+}
+
+function sanitizePipeFields({ type, isPipe, pipeMode, pipeDiameter }) {
+  // Only FS shots may carry pipe data. Other types are forced clean
+  // so toggling a pipe FS → BS/TP can't leave orphan pipe metadata.
+  if (type !== 'FS' || !isPipe) {
+    return { isPipe: false, pipeMode: 'invert', pipeDiameter: null }
+  }
+  const mode = PIPE_MODES.includes(pipeMode) ? pipeMode : 'invert'
+  return {
+    isPipe: true,
+    pipeMode: mode,
+    pipeDiameter: toNumberOrNull(pipeDiameter)
   }
 }
 
@@ -133,9 +156,13 @@ export async function createSurveyShot({
   type,
   rodReading,
   description,
-  orderIndex
+  orderIndex,
+  isPipe,
+  pipeMode,
+  pipeDiameter
 }) {
   const now = serverTimestamp()
+  const pipe = sanitizePipeFields({ type, isPipe, pipeMode, pipeDiameter })
   const docRef = await addDoc(surveyShotsCollection, {
     companyId: TEMP_COMPANY_ID,
     jobId,
@@ -145,18 +172,28 @@ export async function createSurveyShot({
     rodReading: toNumberOrNull(rodReading),
     description: (description || '').trim(),
     orderIndex: typeof orderIndex === 'number' ? orderIndex : 0,
+    isPipe: pipe.isPipe,
+    pipeMode: pipe.pipeMode,
+    pipeDiameter: pipe.pipeDiameter,
     createdAt: now,
     updatedAt: now
   })
   return docRef.id
 }
 
-export async function updateSurveyShot(shotId, { type, rodReading, description }) {
+export async function updateSurveyShot(
+  shotId,
+  { type, rodReading, description, isPipe, pipeMode, pipeDiameter }
+) {
   const ref = doc(db, 'surveyShots', shotId)
+  const pipe = sanitizePipeFields({ type, isPipe, pipeMode, pipeDiameter })
   await updateDoc(ref, {
     type,
     rodReading: toNumberOrNull(rodReading),
     description: (description || '').trim(),
+    isPipe: pipe.isPipe,
+    pipeMode: pipe.pipeMode,
+    pipeDiameter: pipe.pipeDiameter,
     updatedAt: serverTimestamp()
   })
 }
@@ -214,10 +251,30 @@ export function computeSetupShots(shots, startingElevation) {
       }
     }
     if (shot.type === 'FS') {
+      const elevation = currentHI - reading
+      // Pipe derivation (additive — does not change `calculatedElevation`).
+      // The existing elevation IS the invert (if pipeMode==='invert') or
+      // the obvert (if pipeMode==='obvert'). The other value is derived
+      // by ±pipeDiameter. Diameter missing or non-positive ⇒ no derivation.
+      let invert = null
+      let obvert = null
+      if (shot.isPipe) {
+        const d = Number(shot.pipeDiameter)
+        const validDiameter = Number.isFinite(d) && d > 0
+        if (shot.pipeMode === 'obvert') {
+          obvert = elevation
+          invert = validDiameter ? elevation - d : null
+        } else {
+          invert = elevation
+          obvert = validDiameter ? elevation + d : null
+        }
+      }
       return {
         ...shot,
         calculatedHI: currentHI,
-        calculatedElevation: currentHI - reading
+        calculatedElevation: elevation,
+        calculatedInvert: invert,
+        calculatedObvert: obvert
       }
     }
     if (shot.type === 'TP') {

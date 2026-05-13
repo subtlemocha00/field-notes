@@ -141,6 +141,11 @@ export default function SurveySection({ jobId, dailyEntryId }) {
       surveySetupId: setupId,
       ...fields
     })
+    // Mirror the shape that mapShot would produce when this doc is
+    // re-fetched. Without these pipe fields, a freshly added pipe
+    // FS shot would render as non-pipe until a hard reload, with
+    // labels missing and no derived obvert/invert.
+    const isPipe = fields.type === 'FS' && fields.isPipe === true
     const newShot = {
       id,
       jobId,
@@ -149,7 +154,10 @@ export default function SurveySection({ jobId, dailyEntryId }) {
       type: fields.type,
       rodReading: fields.rodReading,
       description: fields.description || '',
-      orderIndex: fields.orderIndex
+      orderIndex: fields.orderIndex,
+      isPipe,
+      pipeMode: isPipe ? (fields.pipeMode || 'invert') : 'invert',
+      pipeDiameter: isPipe ? (fields.pipeDiameter ?? null) : null
     }
     setShotsBySetupId((prev) => ({
       ...prev,
