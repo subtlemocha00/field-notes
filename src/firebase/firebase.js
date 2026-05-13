@@ -27,8 +27,8 @@ const missing = requiredKeys.filter((key) => !firebaseConfig[key])
 export const firebaseConfigError =
   missing.length > 0
     ? `Missing Firebase env vars: ${missing
-        .map((k) => `VITE_FIREBASE_${k.replace(/([A-Z])/g, '_$1').toUpperCase()}`)
-        .join(', ')}.`
+      .map((k) => `VITE_FIREBASE_${k.replace(/([A-Z])/g, '_$1').toUpperCase()}`)
+      .join(', ')}.`
     : null
 
 if (firebaseConfigError) {
@@ -65,7 +65,6 @@ function ensurePersistence() {
   if (!persistenceReady) {
     persistenceReady = setPersistence(auth, browserLocalPersistence).catch(
       (err) => {
-        console.error('[auth] setPersistence failed', err)
         persistenceReady = null
         throw err
       }
@@ -81,7 +80,6 @@ function ensurePersistence() {
 export async function signInWithGoogle() {
   await ensurePersistence()
   const standalone = isStandalonePWA()
-  console.log('[auth] signInWithGoogle standalone=%s', standalone)
   if (standalone) {
     return signInWithRedirect(auth, googleProvider)
   }
@@ -94,10 +92,6 @@ export async function signInWithGoogle() {
 export async function consumeRedirectResult() {
   await ensurePersistence()
   const result = await getRedirectResult(auth)
-  console.log(
-    '[auth] consumeRedirectResult result=%s',
-    result ? `user:${result.user?.uid}` : 'null'
-  )
   return result
 }
 

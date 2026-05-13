@@ -31,20 +31,14 @@ export function AuthProvider({ children }) {
     //   3. THEN flip isLoading=false. Protected routes never make a
     //      decision on partial state.
     async function init() {
-      console.log('[auth] init start')
       try {
         await consumeRedirectResult()
       } catch (err) {
-        console.error('[auth] redirect sign-in failed', err)
         if (!cancelled) setAuthError(err?.message || 'Sign-in failed')
       }
       if (cancelled) return
 
       unsubscribe = subscribeToAuth((firebaseUser) => {
-        console.log(
-          '[auth] onAuthStateChanged user=%s',
-          firebaseUser ? firebaseUser.uid : 'null'
-        )
         if (cancelled) return
         setUser(firebaseUser)
         setIsLoading(false)
