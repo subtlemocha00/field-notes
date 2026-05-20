@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+  <!-- Updated: orange primary instead of charcoal -->
+  <meta name="theme-color" content="#e85d04" />
+
+  <meta name="description" content="Construction field book for inspectors." />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Field Notes" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <title>Field Notes</title>
+
+  <!--
+    ── Google Fonts ──────────────────────────────────────────────
+    Archivo     — sharp, industrial UI font (weights 400–800)
+    JetBrains Mono — tabular monospace for every number, timestamp,
+                     job number, elevation and rod reading.
+    Loaded with display=swap so text is always visible even before
+    fonts arrive — important on slow field connections.
+    ──────────────────────────────────────────────────────────── -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    /*
+      Inline boot-splash styles — shown for ~100 ms before the JS
+      bundle renders React. Must match the new design tokens exactly
+      so there is no flash of the old palette.
+      Dark mode removed — app is used outdoors in daylight.
+    */
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      /* matches --color-bg in the new variables.css */
+      background-color: #f1ede4;
+      /* matches --color-text */
+      color: #0c1014;
+    }
+
+    #root {
+      min-height: 100%;
+    }
+
+    .boot-splash {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100%;
+      padding: 24px;
+      /* Archivo will be cached from the <link> above by the time
+         a cold-start boot-splash is ever visible */
+      font: 600 14px/1.45 "Archivo", -apple-system, BlinkMacSystemFont,
+        "Segoe UI", system-ui, sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      /* matches --color-text-muted */
+      color: #6b7280;
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/index-D7vYai73.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-Cu7CBc1f.css">
+<link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
+
+<body>
+  <div id="root">
+    <div class="boot-splash">Loading…</div>
+  </div>
+  <!-- Uncomment for mobile debugging via eruda: -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+  <script>eruda.init();</script> -->
+
+</body>
+
+</html>
