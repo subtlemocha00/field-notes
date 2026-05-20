@@ -12,6 +12,9 @@ import JobDetailPage from './pages/JobDetailPage.jsx'
 import EditJobPage from './pages/EditJobPage.jsx'
 import CreateDailyEntryPage from './pages/CreateDailyEntryPage.jsx'
 import DailyEntryPage from './pages/DailyEntryPage.jsx'
+import DailyEntrySummaryPage from './pages/DailyEntrySummaryPage.jsx'
+import DailyEntryNotesPage from './pages/DailyEntryNotesPage.jsx'
+import DailyEntrySurveyPage from './pages/DailyEntrySurveyPage.jsx'
 import EditDailyEntryPage from './pages/EditDailyEntryPage.jsx'
 
 function ConfigError({ message }) {
@@ -55,6 +58,9 @@ export default function App() {
               <Route path="jobs/:jobId/edit" element={<EditJobPage />} />
               <Route path="jobs/:jobId/daily/new" element={<CreateDailyEntryPage />} />
               <Route path="jobs/:jobId/daily/:dailyEntryId" element={<DailyEntryPage />} />
+              <Route path="jobs/:jobId/daily/:dailyEntryId/summary" element={<DailyEntrySummaryPage />} />
+              <Route path="jobs/:jobId/daily/:dailyEntryId/notes" element={<DailyEntryNotesPage />} />
+              <Route path="jobs/:jobId/daily/:dailyEntryId/survey" element={<DailyEntrySurveyPage />} />
               <Route path="jobs/:jobId/daily/:dailyEntryId/edit" element={<EditDailyEntryPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

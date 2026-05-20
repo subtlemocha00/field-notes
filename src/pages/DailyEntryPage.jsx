@@ -1,89 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import {
-  getDailyEntry,
-  deleteDailyEntry,
-  WORKER_TYPE_LABELS,
-  EQUIPMENT_TYPE_LABELS
-} from '../firebase/dailyEntries.js'
-import { formatDate, formatDateString } from '../utils/format.js'
-import FieldNotesSection from '../components/FieldNotesSection.jsx'
-import SurveySection from '../components/SurveySection.jsx'
-
-function workerLabel(type) {
-  return WORKER_TYPE_LABELS[type] || type
-}
-
-function equipmentLabel(type) {
-  return EQUIPMENT_TYPE_LABELS[type] || type
-}
-
-function weatherText(weather) {
-  if (!weather) return ''
-  const parts = []
-  if (weather.conditions) parts.push(weather.conditions)
-  if (weather.temperature) parts.push(weather.temperature)
-  return parts.join(' · ')
-}
-
-function Field({ label, value, multiline, children }) {
-  return (
-    <div className="detail-row">
-      <div className="detail-row__label">{label}</div>
-      <div
-        className={
-          multiline
-            ? 'detail-row__value detail-row__value--multiline'
-            : 'detail-row__value'
-        }
-      >
-        {children ?? (value || '—')}
-      </div>
-    </div>
-  )
-}
-
-function WorkersValue({ workers }) {
-  if (!workers || workers.length === 0) return '—'
-  return (
-    <ul className="bare-list">
-      {workers.map((w, i) => (
-        <li key={i}>
-          {workerLabel(w.type)} × {w.count}
-        </li>
-      ))}
-    </ul>
-  )
-}
-
-function EquipmentValue({ equipment }) {
-  if (!equipment || equipment.length === 0) return '—'
-  return (
-    <ul className="bare-list">
-      {equipment.map((e, i) => {
-        const isManual = e.type === 'manual'
-        const name = isManual && e.details ? e.details : equipmentLabel(e.type)
-        const detailSuffix =
-          !isManual && e.details ? ` — ${e.details}` : ''
-        return (
-          <li key={i}>
-            {name} × {e.quantity}
-            {detailSuffix}
-          </li>
-        )
-      })}
-    </ul>
-  )
-}
+import { Link, useParams } from 'react-router-dom'
+import { getDailyEntry } from '../firebase/dailyEntries.js'
+import { formatDateString } from '../utils/format.js'
 
 export default function DailyEntryPage() {
   const { jobId, dailyEntryId } = useParams()
-  const navigate = useNavigate()
 
   const [entry, setEntry] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -106,28 +31,11 @@ export default function DailyEntryPage() {
       }
     }
     load()
-    return () => {
-      cancelled = true
-    }
+    return () => { cancelled = true }
   }, [dailyEntryId])
 
-  async function handleDelete() {
-    if (!confirm(`Delete daily entry for ${entry.date}? This cannot be undone.`)) {
-      return
-    }
-    setIsDeleting(true)
-    try {
-      await deleteDailyEntry(dailyEntryId)
-      navigate(`/jobs/${jobId}`, { replace: true })
-    } catch (err) {
-      console.error('Failed to delete daily entry:', err)
-      alert('Failed to delete daily entry. Please try again.')
-      setIsDeleting(false)
-    }
-  }
-
   if (isLoading) {
-    return <p className="text-muted">Loading daily entry…</p>
+    return <p className="text-muted">Loading…</p>
   }
 
   if (error) {
@@ -156,42 +64,47 @@ export default function DailyEntryPage() {
         </h1>
       </div>
 
-      <div className="card stack">
-        <Field label="Contractor" value={entry.contractor} />
-        <Field label="Weather AM" value={weatherText(entry.weatherAM)} />
-        <Field label="Weather PM" value={weatherText(entry.weatherPM)} />
-        <Field label="Workers">
-          <WorkersValue workers={entry.workers} />
-        </Field>
-        <Field label="Equipment">
-          <EquipmentValue equipment={entry.equipment} />
-        </Field>
-        <Field label="Daily summary notes" value={entry.notes} multiline />
-        <Field label="Created by" value={entry.createdByName} />
-        <Field label="Created" value={formatDate(entry.createdAt)} />
-        <Field label="Last updated" value={formatDate(entry.updatedAt)} />
-      </div>
+      {entry.contractor && (
+        <p className="entry-hub-meta">{entry.contractor}</p>
+      )}
 
-      <div className="action-row">
+      <nav className="entry-hub-nav">
         <Link
-          to={`/jobs/${jobId}/daily/${dailyEntryId}/edit`}
-          className="btn"
+          to={`/jobs/${jobId}/daily/${dailyEntryId}/summary`}
+          className="entry-hub-card"
         >
-          Edit
+          <span className="entry-hub-card__icon">📋</span>
+          <div className="entry-hub-card__body">
+            <span className="entry-hub-card__title">Summary</span>
+            <span className="entry-hub-card__desc">Contractor · weather · crew · equipment</span>
+          </div>
+          <span className="entry-hub-card__arrow">›</span>
         </Link>
-        <button
-          type="button"
-          className="btn btn--danger"
-          onClick={handleDelete}
-          disabled={isDeleting}
+
+        <Link
+          to={`/jobs/${jobId}/daily/${dailyEntryId}/notes`}
+          className="entry-hub-card"
         >
-          {isDeleting ? 'Deleting…' : 'Delete'}
-        </button>
-      </div>
+          <span className="entry-hub-card__icon">📝</span>
+          <div className="entry-hub-card__body">
+            <span className="entry-hub-card__title">Field Notes</span>
+            <span className="entry-hub-card__desc">Notes · photos · timestamps</span>
+          </div>
+          <span className="entry-hub-card__arrow">›</span>
+        </Link>
 
-      <FieldNotesSection jobId={jobId} dailyEntryId={dailyEntryId} />
-
-      <SurveySection jobId={jobId} dailyEntryId={dailyEntryId} />
+        <Link
+          to={`/jobs/${jobId}/daily/${dailyEntryId}/survey`}
+          className="entry-hub-card"
+        >
+          <span className="entry-hub-card__icon">📐</span>
+          <div className="entry-hub-card__body">
+            <span className="entry-hub-card__title">Survey / Level Book</span>
+            <span className="entry-hub-card__desc">Setups · shots · elevations</span>
+          </div>
+          <span className="entry-hub-card__arrow">›</span>
+        </Link>
+      </nav>
     </div>
   )
 }

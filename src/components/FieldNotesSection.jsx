@@ -40,7 +40,7 @@ export default function FieldNotesSection({ jobId, dailyEntryId }) {
     return () => { cancelled = true }
   }, [dailyEntryId])
 
-  // ── Mutations (unchanged) ─────────────────────────────────────
+  // ── Mutations ─────────────────────────────────────────────────
 
   async function handleAdd(event) {
     event.preventDefault()
@@ -90,14 +90,38 @@ export default function FieldNotesSection({ jobId, dailyEntryId }) {
   return (
     <section className="stack">
 
-      {/* Section heading */}
-      <div className="section-header">
-        <h2>Field notes</h2>
-      </div>
+      {/* ── Loading / error states ── */}
+      {isLoading && <p className="text-muted">Loading notes…</p>}
 
-      {/* ── Quick-add form — TOP of section ─────────────────────
-          Form sits above the note list so adding a note never
-          requires scrolling past existing entries.              */}
+      {loadError && !isLoading && (
+        <div className="card error-card">
+          <p>{loadError}</p>
+        </div>
+      )}
+
+      {/* ── Empty state ── */}
+      {!isLoading && !loadError && notes.length === 0 && (
+        <p className="text-muted">No field notes yet — add the first one below.</p>
+      )}
+
+      {/* ── Timeline list ── */}
+      {!isLoading && !loadError && notes.length > 0 && (
+        <div className="card" style={{ padding: '8px 14px' }}>
+          <ul className="field-note-list">
+            {notes.map((note) => (
+              <FieldNoteItem
+                key={note.id}
+                note={note}
+                onUpdate={handleUpdate}
+                onDelete={handleDelete}
+                onPhotosChanged={handlePhotosChanged}
+              />
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* ── Quick-add form — BOTTOM of section ── */}
       <form className="field-note-form" onSubmit={handleAdd}>
         <div className="field-note-form__row">
           <textarea
@@ -120,39 +144,6 @@ export default function FieldNotesSection({ jobId, dailyEntryId }) {
         </div>
         {saveError && <p className="form__error">{saveError}</p>}
       </form>
-
-      {/* ── Loading / error states ── */}
-      {isLoading && <p className="text-muted">Loading notes…</p>}
-
-      {loadError && !isLoading && (
-        <div className="card error-card">
-          <p>{loadError}</p>
-        </div>
-      )}
-
-      {/* ── Empty state ── */}
-      {!isLoading && !loadError && notes.length === 0 && (
-        <p className="text-muted">
-          No field notes yet — add the first one above.
-        </p>
-      )}
-
-      {/* ── Timeline list ── */}
-      {!isLoading && !loadError && notes.length > 0 && (
-        <div className="card" style={{ padding: '8px 14px' }}>
-          <ul className="field-note-list">
-            {notes.map((note) => (
-              <FieldNoteItem
-                key={note.id}
-                note={note}
-                onUpdate={handleUpdate}
-                onDelete={handleDelete}
-                onPhotosChanged={handlePhotosChanged}
-              />
-            ))}
-          </ul>
-        </div>
-      )}
 
     </section>
   )

@@ -191,10 +191,6 @@ export default function SurveySection({ jobId, dailyEntryId }) {
 
   return (
     <section className="stack survey-section">
-      <div className="section-header">
-        <h2>Survey / Level Book</h2>
-      </div>
-
       {isLoading && <p className="text-muted">Loading survey data…</p>}
 
       {loadError && !isLoading && (
