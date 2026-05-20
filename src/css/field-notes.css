@@ -1,3 +1,45 @@
+/* ── Time row in add-note form ───────────────────────────────
+   Sits above the textarea; provides a compact HH:MM picker
+   that defaults to the current local time.
+   ──────────────────────────────────────────────────────────── */
+.field-note-form__time-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.field-note-form__time-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+/* Override .input defaults — time picker should be compact */
+.field-note-form__time {
+  width: auto;
+  min-width: 110px;
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+/* ── Time input row inside edit mode ─────────────────────────
+   Appears between the edit textarea and the meta/author row.
+   ──────────────────────────────────────────────────────────── */
+.field-note__edit-time {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 /* ── Quick-add form (at top of section) ─────────────────────── */
 .field-note-form {
   background-color: var(--color-surface);

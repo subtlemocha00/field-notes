@@ -8,6 +8,19 @@ import {
 } from '../firebase/fieldNotes.js'
 import FieldNoteItem from './FieldNoteItem.jsx'
 
+function currentTimeString() {
+  const now = new Date()
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+}
+
+function sortByTimestamp(notes) {
+  return [...notes].sort((a, b) => {
+    const ta = a.timestamp?.toMillis?.() ?? 0
+    const tb = b.timestamp?.toMillis?.() ?? 0
+    return ta - tb
+  })
+}
+
 export default function FieldNotesSection({ jobId, dailyEntryId }) {
   const { user } = useAuth()
 
@@ -16,6 +29,7 @@ export default function FieldNotesSection({ jobId, dailyEntryId }) {
   const [loadError, setLoadError] = useState(null)
 
   const [newText, setNewText] = useState('')
+  const [newTime, setNewTime] = useState(currentTimeString)
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
 
@@ -49,9 +63,10 @@ export default function FieldNotesSection({ jobId, dailyEntryId }) {
     setIsSaving(true)
     setSaveError(null)
     try {
-      const created = await createFieldNote(jobId, dailyEntryId, text, user)
-      setNotes((prev) => [...prev, created])
+      const created = await createFieldNote(jobId, dailyEntryId, text, user, newTime || null)
+      setNotes((prev) => sortByTimestamp([...prev, created]))
       setNewText('')
+      setNewTime(currentTimeString())
     } catch (err) {
       console.error('Failed to save note:', err)
       setSaveError('Unable to save note')
@@ -60,11 +75,18 @@ export default function FieldNotesSection({ jobId, dailyEntryId }) {
     }
   }
 
-  async function handleUpdate(noteId, nextText) {
-    await updateFieldNote(noteId, nextText)
-    setNotes((prev) =>
-      prev.map((n) => (n.id === noteId ? { ...n, text: nextText } : n))
-    )
+  // nextTimestamp: optional Firestore Timestamp built by FieldNoteItem
+  // when the user changes the note time during editing.
+  async function handleUpdate(noteId, nextText, nextTimestamp) {
+    await updateFieldNote(noteId, nextText, nextTimestamp)
+    setNotes((prev) => {
+      const updated = prev.map((n) =>
+        n.id === noteId
+          ? { ...n, text: nextText, ...(nextTimestamp ? { timestamp: nextTimestamp } : {}) }
+          : n
+      )
+      return nextTimestamp ? sortByTimestamp(updated) : updated
+    })
   }
 
   async function handleDelete(noteId) {
@@ -90,7 +112,7 @@ export default function FieldNotesSection({ jobId, dailyEntryId }) {
   return (
     <section className="stack">
 
-      {/* ── Loading / error states ── */}
+      {/* Loading / error states */}
       {isLoading && <p className="text-muted">Loading notes…</p>}
 
       {loadError && !isLoading && (
@@ -99,12 +121,12 @@ export default function FieldNotesSection({ jobId, dailyEntryId }) {
         </div>
       )}
 
-      {/* ── Empty state ── */}
+      {/* Empty state */}
       {!isLoading && !loadError && notes.length === 0 && (
         <p className="text-muted">No field notes yet — add the first one below.</p>
       )}
 
-      {/* ── Timeline list ── */}
+      {/* Timeline list */}
       {!isLoading && !loadError && notes.length > 0 && (
         <div className="card" style={{ padding: '8px 14px' }}>
           <ul className="field-note-list">
@@ -121,8 +143,24 @@ export default function FieldNotesSection({ jobId, dailyEntryId }) {
         </div>
       )}
 
-      {/* ── Quick-add form — BOTTOM of section ── */}
+      {/* Quick-add form — bottom of section */}
       <form className="field-note-form" onSubmit={handleAdd}>
+        {/* Time selector row */}
+        <div className="field-note-form__time-row">
+          <label className="field-note-form__time-label" htmlFor="new-note-time">
+            Time
+          </label>
+          <input
+            id="new-note-time"
+            type="time"
+            className="input field-note-form__time"
+            value={newTime}
+            onChange={(e) => setNewTime(e.target.value)}
+            disabled={isSaving}
+          />
+        </div>
+
+        {/* Text + submit row */}
         <div className="field-note-form__row">
           <textarea
             className="input textarea field-note-form__textarea"
@@ -142,6 +180,7 @@ export default function FieldNotesSection({ jobId, dailyEntryId }) {
             {isSaving ? '…' : 'Add'}
           </button>
         </div>
+
         {saveError && <p className="form__error">{saveError}</p>}
       </form>
 

@@ -4,11 +4,11 @@ import {
   uploadFieldNotePhoto,
   deleteFieldNotePhoto
 } from '../firebase/photos.js'
+import { timeStringToTimestamp } from '../firebase/fieldNotes.js'
 import PhotoUploader from './PhotoUploader.jsx'
 import PhotoGallery from './PhotoGallery.jsx'
 
-// Returns "HH:MM" (24-hour) from a Firestore Timestamp or Date.
-// Kept local to avoid changing the shared format.js utility.
+// "HH:MM" display (24-hour) from Firestore Timestamp or Date.
 function shortTime(value) {
   if (!value) return ''
   const d = typeof value.toDate === 'function' ? value.toDate() : new Date(value)
@@ -20,6 +20,14 @@ function shortTime(value) {
   })
 }
 
+// "HH:MM" string compatible with <input type="time">.
+function toTimeInput(value) {
+  if (!value) return ''
+  const d = typeof value.toDate === 'function' ? value.toDate() : new Date(value)
+  if (isNaN(d.getTime())) return ''
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
 export default function FieldNoteItem({
   note,
   onUpdate,
@@ -28,14 +36,21 @@ export default function FieldNoteItem({
 }) {
   const [isEditing, setIsEditing] = useState(false)
   const [editText, setEditText] = useState(note.text)
+  const [editTime, setEditTime] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState(null)
 
-  // ── Handlers (all unchanged from original) ──────────────────
+  // Photos collapsed by default — reduces visual clutter when many notes exist.
+  const [isPhotosOpen, setIsPhotosOpen] = useState(false)
+
+  const photoCount = note.photoUrls?.length ?? 0
+
+  // ── Handlers ─────────────────────────────────────────────────
 
   function startEdit() {
     setEditText(note.text)
+    setEditTime(toTimeInput(note.timestamp))
     setIsEditing(true)
     setError(null)
   }
@@ -51,10 +66,19 @@ export default function FieldNoteItem({
       setError('Note cannot be empty.')
       return
     }
+
+    // Build updated timestamp from editTime, preserving the original calendar
+    // date — only the time-of-day portion changes.
+    let nextTimestamp = null
+    if (editTime) {
+      const baseDate = note.timestamp?.toDate?.() ?? new Date()
+      nextTimestamp = timeStringToTimestamp(editTime, baseDate)
+    }
+
     setIsSaving(true)
     setError(null)
     try {
-      await onUpdate(note.id, next)
+      await onUpdate(note.id, next, nextTimestamp)
       setIsEditing(false)
     } catch (err) {
       console.error('Failed to update note:', err)
@@ -97,8 +121,7 @@ export default function FieldNoteItem({
   return (
     <li className="field-note">
 
-      {/* ── Time in left gutter ── */}
-      {/* aria-label carries the full timestamp for screen readers */}
+      {/* Time in left gutter */}
       <span
         className="field-note__time"
         aria-label={formatTimestamp(note.timestamp)}
@@ -106,10 +129,10 @@ export default function FieldNoteItem({
         {shortTime(note.timestamp)}
       </span>
 
-      {/* ── Spine dot ── */}
+      {/* Spine dot */}
       <span className="field-note__dot" aria-hidden="true" />
 
-      {/* ── Main body ── */}
+      {/* Main body */}
       <div className="field-note__body">
 
         {/* Note text or edit textarea */}
@@ -124,6 +147,21 @@ export default function FieldNoteItem({
             disabled={isSaving}
             aria-label="Edit note"
           />
+        )}
+
+        {/* Time input — edit mode only */}
+        {isEditing && (
+          <div className="field-note__edit-time">
+            <span className="field-note-form__time-label">Time</span>
+            <input
+              type="time"
+              className="input field-note-form__time"
+              value={editTime}
+              onChange={(e) => setEditTime(e.target.value)}
+              disabled={isSaving}
+              aria-label="Note time"
+            />
+          </div>
         )}
 
         {error && <p className="form__error">{error}</p>}
@@ -175,20 +213,39 @@ export default function FieldNoteItem({
           </div>
         </div>
 
-        {/* Photos (PhotoGallery + PhotoUploader) */}
+        {/* Photos — collapsed by default */}
         <div className="photos-section">
-          <div className="photos-section__header">
+          <button
+            type="button"
+            className="photos-section__toggle"
+            onClick={() => setIsPhotosOpen((v) => !v)}
+            aria-expanded={isPhotosOpen}
+          >
             <span className="photos-section__label">Photos</span>
-            <PhotoUploader
-              disabled={isDeleting}
-              onUpload={handlePhotoUpload}
-            />
-          </div>
-          <PhotoGallery
-            urls={note.photoUrls}
-            onDelete={handlePhotoDelete}
-            disabled={isDeleting}
-          />
+            {photoCount > 0 && (
+              <span className="photos-section__count">{photoCount}</span>
+            )}
+            <span
+              className={`photos-section__chevron${isPhotosOpen ? ' photos-section__chevron--open' : ''}`}
+              aria-hidden="true"
+            >
+              ›
+            </span>
+          </button>
+
+          {isPhotosOpen && (
+            <div className="photos-section__body">
+              <PhotoUploader
+                disabled={isDeleting}
+                onUpload={handlePhotoUpload}
+              />
+              <PhotoGallery
+                urls={note.photoUrls}
+                onDelete={handlePhotoDelete}
+                disabled={isDeleting}
+              />
+            </div>
+          )}
         </div>
 
       </div>

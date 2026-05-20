@@ -34,6 +34,63 @@
   letter-spacing: 0.03em;
 }
 
+/* ── Collapsible photos toggle ───────────────────────────────
+   Replaces the old __header div with a full-width button so
+   the entire PHOTOS row is one touch target.
+   ──────────────────────────────────────────────────────────── */
+.photos-section__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  /* 36 px is enough touch area; the label itself is small */
+  min-height: 36px;
+  color: inherit;
+}
+
+.photos-section__toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* Photo count badge next to the label */
+.photos-section__count {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+/* Right-aligned chevron; rotates 90° when open */
+.photos-section__chevron {
+  margin-left: auto;
+  display: inline-block;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  transition: transform 0.15s ease;
+  line-height: 1;
+  user-select: none;
+}
+
+.photos-section__chevron--open {
+  transform: rotate(90deg);
+}
+
+/* Body revealed when expanded */
+.photos-section__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
 .photo-gallery__empty {
   font-size: var(--font-size-sm);
   margin: 0;

@@ -33,6 +33,15 @@ function mapNote(snapshot) {
   }
 }
 
+// Build a Firestore Timestamp from "HH:MM" string, using baseDate for the
+// calendar date (defaults to today). Keeps Firebase-specific code isolated.
+export function timeStringToTimestamp(timeString, baseDate = new Date()) {
+  const [hh, mm] = timeString.split(':').map(Number)
+  const d = new Date(baseDate)
+  d.setHours(hh, mm, 0, 0)
+  return Timestamp.fromDate(d)
+}
+
 export async function listFieldNotes(dailyEntryId) {
   const q = query(
     fieldNotesCollection,
@@ -43,13 +52,15 @@ export async function listFieldNotes(dailyEntryId) {
   return result.docs.map(mapNote)
 }
 
-export async function createFieldNote(jobId, dailyEntryId, text, user) {
+// noteTime: optional "HH:MM" string; when provided, overrides the
+// automatic current-time timestamp so inspectors can backfill notes.
+export async function createFieldNote(jobId, dailyEntryId, text, user, noteTime = null) {
   const trimmed = (text || '').trim()
   if (!trimmed) throw new Error('Note text is required.')
 
-  // Client-side timestamp keeps the UI immediately consistent without
-  // waiting for the server roundtrip; createdAt/updatedAt use server time.
-  const clientTimestamp = Timestamp.fromDate(new Date())
+  const clientTimestamp = noteTime
+    ? timeStringToTimestamp(noteTime)
+    : Timestamp.fromDate(new Date())
 
   const docRef = await addDoc(fieldNotesCollection, {
     companyId: TEMP_COMPANY_ID,
@@ -78,14 +89,20 @@ export async function createFieldNote(jobId, dailyEntryId, text, user) {
   }
 }
 
-export async function updateFieldNote(noteId, text) {
+// nextTimestamp: optional Firestore Timestamp; when provided, updates the
+// displayed note time (supports manual time correction during edit).
+export async function updateFieldNote(noteId, text, nextTimestamp = null) {
   const trimmed = (text || '').trim()
   if (!trimmed) throw new Error('Note text is required.')
   const ref = doc(db, 'fieldNotes', noteId)
-  await updateDoc(ref, {
+  const updates = {
     text: trimmed,
     updatedAt: serverTimestamp()
-  })
+  }
+  if (nextTimestamp) {
+    updates.timestamp = nextTimestamp
+  }
+  await updateDoc(ref, updates)
 }
 
 export async function deleteFieldNote(noteId) {
