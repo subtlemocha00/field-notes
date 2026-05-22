@@ -16,7 +16,7 @@ import { db } from './firebase.js'
 // TEMPORARY: every job is stamped with this companyId until real
 // company management is built. Future work — replace with a value
 // resolved from the authenticated user's profile / company membership.
-export const TEMP_COMPANY_ID = 'demo-company'
+export const TEMP_COMPANY_ID = 'R. Dobbin Engineering Inc'
 
 const jobsCollection = collection(db, 'jobs')
 
