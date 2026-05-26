@@ -12,6 +12,7 @@ import './css/field-notes.css'
 import './css/photos.css'
 import './css/survey.css'
 import './css/home.css'
+import './css/documents.css'
 
 function FatalError({ message }) {
   return (

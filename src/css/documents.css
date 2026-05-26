@@ -1,0 +1,136 @@
+/* ============================================================
+   documents.css — V1 PDF document management.
+
+   Lightweight list + uploader on the Job detail page. Reuses
+   existing .btn, .input, .field, .field__label, .card, .error-card
+   primitives — only adds layout/spacing rules specific to the
+   documents section.
+   ============================================================ */
+
+/* ── Uploader ────────────────────────────────────────────── */
+.doc-uploader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.doc-uploader__type {
+  /* matches .field — stays compact on phones */
+  max-width: 320px;
+}
+
+.doc-uploader__btn {
+  align-self: flex-start;
+}
+
+.doc-uploader__error {
+  margin: 0;
+}
+
+/* ── Document groups ─────────────────────────────────────── */
+.documents-groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.documents-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Mono micro-caps group title matches the rest of the app's labels */
+.documents-group__title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.documents-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* ── Document row ────────────────────────────────────────── */
+.document-row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  min-height: var(--touch-target);
+}
+
+.document-row__link {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: var(--space-3) var(--space-4);
+  /* compensate for left border */
+  padding-left: calc(var(--space-4) - 1px);
+  color: var(--color-text);
+  text-decoration: none;
+  min-width: 0;
+}
+
+.document-row__link:hover .document-row__name {
+  color: var(--color-primary);
+}
+
+.document-row__link:focus-visible {
+  outline: 2.5px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.document-row__name {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--color-text);
+  /* prevent very long filenames from blowing out the row */
+  word-break: break-word;
+  line-height: 1.25;
+}
+
+.document-row__meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.document-row__delete {
+  align-self: stretch;
+  border-radius: 0;
+  min-width: 88px;
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+/* On the narrowest phones, stack the delete button under the link
+   so the filename always has room to breathe. */
+@media (max-width: 380px) {
+  .document-row {
+    flex-direction: column;
+  }
+  .document-row__delete {
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    min-height: 44px;
+  }
+}

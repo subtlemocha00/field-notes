@@ -4,6 +4,7 @@ import { getJob, deleteJob } from '../firebase/jobs.js'
 import { listDailyEntries } from '../firebase/dailyEntries.js'
 import { formatDate } from '../utils/format.js'
 import DailyEntryCard from '../components/DailyEntryCard.jsx'
+import DocumentsSection from '../components/DocumentsSection.jsx'
 
 export default function JobDetailPage() {
   const { jobId } = useParams()
@@ -178,6 +179,12 @@ export default function JobDetailPage() {
           ))}
         </div>
       )}
+
+      <div className="section-header">
+        <h2>Documents</h2>
+      </div>
+
+      <DocumentsSection jobId={jobId} />
     </div>
   )
 }
