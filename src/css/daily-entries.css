@@ -76,6 +76,33 @@
   margin: 0;
 }
 
+/* ── Daily entry hub — download action ────────────────────────
+   Sits below the nav cards. Secondary utility action: full-width
+   on mobile, auto-width on wider screens.
+   ──────────────────────────────────────────────────────────── */
+.entry-hub-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.entry-hub-download-btn {
+  width: 100%;
+}
+
+@media (min-width: 480px) {
+  .entry-hub-download-btn {
+    width: auto;
+    align-self: flex-start;
+  }
+}
+
+.entry-hub-download-error {
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+  margin: 0;
+}
+
 /* ── Side-by-side fields (weather AM/PM conditions + temp) ── */
 .field-row {
   display: flex;
