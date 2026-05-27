@@ -493,8 +493,30 @@ Implemented in [`computeSetupShots`](src/firebase/survey.js) and [`computeAllSet
 - [ ] FS shot subtracts from HI without moving currentElevation.
 - [ ] TP shot subtracts from HI **and** carries forward to subsequent BS.
 - [ ] Editing any shot or setup recalculates the whole chain on render.
-- [ ] Deleting a setup cascades and removes all its shots in one batch.
+- [ ] Deleting a setup soft-deletes it (hidden but recoverable); its shots stop rendering.
 - [ ] Existing jobs / daily entries / field notes / photos still work.
+
+## Phase 7 — Foundation hardening
+
+Production-readiness groundwork. No user-facing features; this phase tightens data integrity, deletion safety, auditability, and security.
+
+### Audit metadata + schema version
+
+Every important create now stamps a consistent set of fields via [`src/firebase/audit.js`](src/firebase/audit.js): `companyId`, `schemaVersion`, `createdBy`, `createdByName`, `updatedBy`, `createdAt`, `updatedAt`, `deleted`. Every update stamps `updatedBy` + `updatedAt`. `schemaVersion` (currently `1`) exists for future migration safety — no migration system is built yet. Legacy records without these fields are read as `schemaVersion: 0` / `deleted: false` and remain fully functional.
+
+### Soft delete
+
+`jobs`, `dailyEntries`, `surveySetups`, and `fieldNotes` are **no longer hard-deleted**. Deletion sets `deleted: true` + `deletedAt` + `deletedBy`; records are excluded from normal queries (filtered in code so legacy docs without the field stay visible — no new composite index needed) but remain recoverable in Firestore. `surveyShots` (line-items) and `documents` (Storage-backed, with orphan-safe cleanup) stay hard-deleted. No restore UI / admin tooling is included.
+
+### Security rules (now versioned in the repo)
+
+Rules live in [`firestore.rules`](firestore.rules) and [`storage.rules`](storage.rules), wired via [`firebase.json`](firebase.json). Deploy with:
+
+```bash
+firebase deploy --only firestore:rules,storage
+```
+
+Baseline: authenticated-only access everywhere, default-deny for unmatched paths, `companyId` required on creates, and hard-delete forbidden at the DB layer for the four soft-delete collections. Storage is confined to `companies/**` with a 50 MB write cap. Real per-company isolation against a membership claim is future work (single `TEMP_COMPANY_ID` today).
 
 ## What's intentionally not here
 
