@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getJob, updateJob } from '../firebase/jobs.js'
+import { useAuth } from '../utils/AuthContext.jsx'
 
 export default function EditJobPage() {
   const { jobId } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const [jobNumber, setJobNumber] = useState('')
   const [jobName, setJobName] = useState('')
@@ -54,7 +56,7 @@ export default function EditJobPage() {
     setIsSaving(true)
     setError(null)
     try {
-      await updateJob(jobId, { jobNumber, jobName, location, description })
+      await updateJob(jobId, { jobNumber, jobName, location, description }, user)
       navigate(`/jobs/${jobId}`, { replace: true })
     } catch (err) {
       console.error('Failed to update job:', err)

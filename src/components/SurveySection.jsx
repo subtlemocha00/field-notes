@@ -10,9 +10,11 @@ import {
   deleteSurveyShot,
   computeAllSetups
 } from '../firebase/survey.js'
+import { useAuth } from '../utils/AuthContext.jsx'
 import SurveySetupCard from './SurveySetupCard.jsx'
 
 export default function SurveySection({ jobId, dailyEntryId }) {
+  const { user } = useAuth()
   const [setups, setSetups] = useState([])
   const [shotsBySetupId, setShotsBySetupId] = useState({})
   const [isLoading, setIsLoading] = useState(true)
@@ -93,7 +95,7 @@ export default function SurveySection({ jobId, dailyEntryId }) {
         dailyEntryId,
         setupName: newSetupName,
         initialBenchmarkElevation: bm
-      })
+      }, user)
       // Re-fetch to pick up server-side createdAt for stable ordering.
       const refreshed = await listSurveySetups(dailyEntryId)
       setSetups(refreshed)
@@ -110,7 +112,7 @@ export default function SurveySection({ jobId, dailyEntryId }) {
   }
 
   async function handleUpdateSetup(setupId, patch) {
-    await updateSurveySetup(setupId, patch)
+    await updateSurveySetup(setupId, patch, user)
     setSetups((prev) =>
       prev.map((s) =>
         s.id === setupId
@@ -125,7 +127,7 @@ export default function SurveySection({ jobId, dailyEntryId }) {
   }
 
   async function handleDeleteSetup(setupId) {
-    await deleteSurveySetup(setupId)
+    await deleteSurveySetup(setupId, user)
     setSetups((prev) => prev.filter((s) => s.id !== setupId))
     setShotsBySetupId((prev) => {
       const next = { ...prev }
@@ -140,7 +142,7 @@ export default function SurveySection({ jobId, dailyEntryId }) {
       dailyEntryId,
       surveySetupId: setupId,
       ...fields
-    })
+    }, user)
     // Mirror the shape that mapShot would produce when this doc is
     // re-fetched. Without these pipe fields, a freshly added pipe
     // FS shot would render as non-pipe until a hard reload, with
@@ -166,7 +168,7 @@ export default function SurveySection({ jobId, dailyEntryId }) {
   }
 
   async function handleUpdateShot(shotId, patch) {
-    await updateSurveyShot(shotId, patch)
+    await updateSurveyShot(shotId, patch, user)
     setShotsBySetupId((prev) => {
       const next = { ...prev }
       for (const setupId of Object.keys(next)) {

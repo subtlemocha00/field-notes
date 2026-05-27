@@ -3,16 +3,23 @@ import {
   doc,
   addDoc,
   updateDoc,
-  deleteDoc,
   getDocs,
   query,
   where,
   orderBy,
-  serverTimestamp,
   Timestamp
 } from 'firebase/firestore'
 import { db } from './firebase.js'
-import { TEMP_COMPANY_ID } from './jobs.js'
+import {
+  TEMP_COMPANY_ID,
+  SCHEMA_VERSION,
+  auditCreateFields,
+  auditUpdateFields,
+  softDeleteFields,
+  isNotDeleted,
+  userId,
+  userName
+} from './audit.js'
 
 const fieldNotesCollection = collection(db, 'fieldNotes')
 
@@ -28,8 +35,11 @@ function mapNote(snapshot) {
     photoUrls: Array.isArray(data.photoUrls) ? data.photoUrls : [],
     createdBy: data.createdBy || null,
     createdByName: data.createdByName || '',
+    updatedBy: data.updatedBy || null,
     createdAt: data.createdAt,
-    updatedAt: data.updatedAt
+    updatedAt: data.updatedAt,
+    schemaVersion: data.schemaVersion ?? 0,
+    deleted: data.deleted === true
   }
 }
 
@@ -49,12 +59,16 @@ export async function listFieldNotes(dailyEntryId) {
     orderBy('timestamp', 'asc')
   )
   const result = await getDocs(q)
-  return result.docs.map(mapNote)
+  // Hide soft-deleted notes (legacy notes without the field stay visible).
+  return result.docs.filter((d) => isNotDeleted(d.data())).map(mapNote)
 }
 
 // noteTime: optional "HH:MM" string; when provided, overrides the
 // automatic current-time timestamp so inspectors can backfill notes.
 export async function createFieldNote(jobId, dailyEntryId, text, user, noteTime = null) {
+  if (!jobId || !dailyEntryId) {
+    throw new Error('A job and daily entry are required to add a note.')
+  }
   const trimmed = (text || '').trim()
   if (!trimmed) throw new Error('Note text is required.')
 
@@ -63,17 +77,15 @@ export async function createFieldNote(jobId, dailyEntryId, text, user, noteTime 
     : Timestamp.fromDate(new Date())
 
   const docRef = await addDoc(fieldNotesCollection, {
-    companyId: TEMP_COMPANY_ID,
     jobId,
     dailyEntryId,
     timestamp: clientTimestamp,
     text: trimmed,
-    createdBy: user?.uid || null,
-    createdByName: user?.displayName || user?.email || '',
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
+    ...auditCreateFields(user)
   })
 
+  // Return an optimistic local shape. createdAt/updatedAt resolve server-side,
+  // so they stay null here until the next read.
   return {
     id: docRef.id,
     companyId: TEMP_COMPANY_ID,
@@ -82,22 +94,25 @@ export async function createFieldNote(jobId, dailyEntryId, text, user, noteTime 
     timestamp: clientTimestamp,
     text: trimmed,
     photoUrls: [],
-    createdBy: user?.uid || null,
-    createdByName: user?.displayName || user?.email || '',
+    createdBy: userId(user),
+    createdByName: userName(user),
+    updatedBy: userId(user),
     createdAt: null,
-    updatedAt: null
+    updatedAt: null,
+    schemaVersion: SCHEMA_VERSION,
+    deleted: false
   }
 }
 
 // nextTimestamp: optional Firestore Timestamp; when provided, updates the
 // displayed note time (supports manual time correction during edit).
-export async function updateFieldNote(noteId, text, nextTimestamp = null) {
+export async function updateFieldNote(noteId, text, nextTimestamp = null, user = null) {
   const trimmed = (text || '').trim()
   if (!trimmed) throw new Error('Note text is required.')
   const ref = doc(db, 'fieldNotes', noteId)
   const updates = {
     text: trimmed,
-    updatedAt: serverTimestamp()
+    ...auditUpdateFields(user)
   }
   if (nextTimestamp) {
     updates.timestamp = nextTimestamp
@@ -105,7 +120,9 @@ export async function updateFieldNote(noteId, text, nextTimestamp = null) {
   await updateDoc(ref, updates)
 }
 
-export async function deleteFieldNote(noteId) {
+// Soft delete — hidden from the note timeline but recoverable. Any attached
+// photos remain in Storage and stay referenced on the (hidden) document.
+export async function deleteFieldNote(noteId, user) {
   const ref = doc(db, 'fieldNotes', noteId)
-  await deleteDoc(ref)
+  await updateDoc(ref, softDeleteFields(user))
 }

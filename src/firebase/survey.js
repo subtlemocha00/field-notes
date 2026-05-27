@@ -7,12 +7,15 @@ import {
   getDocs,
   query,
   where,
-  orderBy,
-  serverTimestamp,
-  writeBatch
+  orderBy
 } from 'firebase/firestore'
 import { db } from './firebase.js'
-import { TEMP_COMPANY_ID } from './jobs.js'
+import {
+  auditCreateFields,
+  auditUpdateFields,
+  softDeleteFields,
+  isNotDeleted
+} from './audit.js'
 
 const surveySetupsCollection = collection(db, 'surveySetups')
 const surveyShotsCollection = collection(db, 'surveyShots')
@@ -35,8 +38,12 @@ function mapSetup(snapshot) {
     dailyEntryId: data.dailyEntryId,
     setupName: typeof data.setupName === 'string' ? data.setupName : '',
     initialBenchmarkElevation: toNumberOrNull(data.initialBenchmarkElevation),
+    createdBy: data.createdBy || null,
+    updatedBy: data.updatedBy || null,
     createdAt: data.createdAt,
-    updatedAt: data.updatedAt
+    updatedAt: data.updatedAt,
+    schemaVersion: data.schemaVersion ?? 0,
+    deleted: data.deleted === true
   }
 }
 
@@ -60,8 +67,12 @@ function mapShot(snapshot) {
     isPipe,
     pipeMode: isPipe ? pipeMode : 'invert',
     pipeDiameter: isPipe ? toNumberOrNull(data.pipeDiameter) : null,
+    createdBy: data.createdBy || null,
+    updatedBy: data.updatedBy || null,
     createdAt: data.createdAt,
-    updatedAt: data.updatedAt
+    updatedAt: data.updatedAt,
+    schemaVersion: data.schemaVersion ?? 0,
+    deleted: data.deleted === true
   }
 }
 
@@ -88,7 +99,8 @@ export async function listSurveySetups(dailyEntryId) {
     orderBy('createdAt', 'asc')
   )
   const result = await getDocs(q)
-  return result.docs.map(mapSetup)
+  // Hide soft-deleted setups (legacy setups without the field stay visible).
+  return result.docs.filter((d) => isNotDeleted(d.data())).map(mapSetup)
 }
 
 export async function createSurveySetup({
@@ -96,16 +108,16 @@ export async function createSurveySetup({
   dailyEntryId,
   setupName,
   initialBenchmarkElevation
-}) {
-  const now = serverTimestamp()
+}, user) {
+  if (!jobId || !dailyEntryId) {
+    throw new Error('A job and daily entry are required to create a setup.')
+  }
   const docRef = await addDoc(surveySetupsCollection, {
-    companyId: TEMP_COMPANY_ID,
     jobId,
     dailyEntryId,
     setupName: (setupName || '').trim(),
     initialBenchmarkElevation: toNumberOrNull(initialBenchmarkElevation),
-    createdAt: now,
-    updatedAt: now
+    ...auditCreateFields(user)
   })
   return docRef.id
 }
@@ -113,28 +125,22 @@ export async function createSurveySetup({
 export async function updateSurveySetup(setupId, {
   setupName,
   initialBenchmarkElevation
-}) {
+}, user) {
   const ref = doc(db, 'surveySetups', setupId)
   await updateDoc(ref, {
     setupName: (setupName || '').trim(),
     initialBenchmarkElevation: toNumberOrNull(initialBenchmarkElevation),
-    updatedAt: serverTimestamp()
+    ...auditUpdateFields(user)
   })
 }
 
-export async function deleteSurveySetup(setupId) {
-  // Cascade: remove all shots in this setup atomically with the setup itself.
-  const shotsQ = query(
-    surveyShotsCollection,
-    where('surveySetupId', '==', setupId)
-  )
-  const shotsResult = await getDocs(shotsQ)
-  const batch = writeBatch(db)
-  for (const docSnap of shotsResult.docs) {
-    batch.delete(docSnap.ref)
-  }
-  batch.delete(doc(db, 'surveySetups', setupId))
-  await batch.commit()
+// Soft delete — the setup is hidden from the survey section but recoverable.
+// Its shots are queried by surveySetupId; with the setup hidden they no
+// longer render, and they remain in Firestore alongside the setup. We
+// intentionally no longer cascade-hard-delete the shots.
+export async function deleteSurveySetup(setupId, user) {
+  const ref = doc(db, 'surveySetups', setupId)
+  await updateDoc(ref, softDeleteFields(user))
 }
 
 // ---------- Shots ----------
@@ -146,7 +152,7 @@ export async function listSurveyShots(surveySetupId) {
     orderBy('orderIndex', 'asc')
   )
   const result = await getDocs(q)
-  return result.docs.map(mapShot)
+  return result.docs.filter((d) => isNotDeleted(d.data())).map(mapShot)
 }
 
 export async function createSurveyShot({
@@ -160,11 +166,15 @@ export async function createSurveyShot({
   isPipe,
   pipeMode,
   pipeDiameter
-}) {
-  const now = serverTimestamp()
+}, user) {
+  if (!jobId || !dailyEntryId || !surveySetupId) {
+    throw new Error('A job, daily entry, and setup are required to add a shot.')
+  }
+  if (!SHOT_TYPES.includes(type)) {
+    throw new Error(`Invalid shot type: ${type}.`)
+  }
   const pipe = sanitizePipeFields({ type, isPipe, pipeMode, pipeDiameter })
   const docRef = await addDoc(surveyShotsCollection, {
-    companyId: TEMP_COMPANY_ID,
     jobId,
     dailyEntryId,
     surveySetupId,
@@ -175,16 +185,19 @@ export async function createSurveyShot({
     isPipe: pipe.isPipe,
     pipeMode: pipe.pipeMode,
     pipeDiameter: pipe.pipeDiameter,
-    createdAt: now,
-    updatedAt: now
+    ...auditCreateFields(user)
   })
   return docRef.id
 }
 
 export async function updateSurveyShot(
   shotId,
-  { type, rodReading, description, isPipe, pipeMode, pipeDiameter }
+  { type, rodReading, description, isPipe, pipeMode, pipeDiameter },
+  user
 ) {
+  if (!SHOT_TYPES.includes(type)) {
+    throw new Error(`Invalid shot type: ${type}.`)
+  }
   const ref = doc(db, 'surveyShots', shotId)
   const pipe = sanitizePipeFields({ type, isPipe, pipeMode, pipeDiameter })
   await updateDoc(ref, {
@@ -194,10 +207,13 @@ export async function updateSurveyShot(
     isPipe: pipe.isPipe,
     pipeMode: pipe.pipeMode,
     pipeDiameter: pipe.pipeDiameter,
-    updatedAt: serverTimestamp()
+    ...auditUpdateFields(user)
   })
 }
 
+// Individual shots are fine-grained line-items edited within a setup, not in
+// the named soft-delete set — they stay hard-deleted. Deleting a whole setup
+// (soft) hides its shots without removing them.
 export async function deleteSurveyShot(shotId) {
   const ref = doc(db, 'surveyShots', shotId)
   await deleteDoc(ref)

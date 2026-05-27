@@ -7,6 +7,7 @@ import {
   EQUIPMENT_TYPE_LABELS,
 } from '../firebase/dailyEntries.js'
 import { formatDate, formatDateString } from '../utils/format.js'
+import { useAuth } from '../utils/AuthContext.jsx'
 
 function workerLabel(type) {
   return WORKER_TYPE_LABELS[type] || type
@@ -76,6 +77,7 @@ function EquipmentValue({ equipment }) {
 export default function DailyEntrySummaryPage() {
   const { jobId, dailyEntryId } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const [entry, setEntry] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -107,12 +109,12 @@ export default function DailyEntrySummaryPage() {
   }, [dailyEntryId])
 
   async function handleDelete() {
-    if (!confirm(`Delete daily entry for ${entry.date}? This cannot be undone.`)) {
+    if (!confirm(`Delete daily entry for ${entry.date}? It will be hidden from this job.`)) {
       return
     }
     setIsDeleting(true)
     try {
-      await deleteDailyEntry(dailyEntryId)
+      await deleteDailyEntry(dailyEntryId, user)
       navigate(`/jobs/${jobId}`, { replace: true })
     } catch (err) {
       console.error('Failed to delete daily entry:', err)

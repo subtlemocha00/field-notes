@@ -78,7 +78,7 @@ export default function FieldNotesSection({ jobId, dailyEntryId }) {
   // nextTimestamp: optional Firestore Timestamp built by FieldNoteItem
   // when the user changes the note time during editing.
   async function handleUpdate(noteId, nextText, nextTimestamp) {
-    await updateFieldNote(noteId, nextText, nextTimestamp)
+    await updateFieldNote(noteId, nextText, nextTimestamp, user)
     setNotes((prev) => {
       const updated = prev.map((n) =>
         n.id === noteId
@@ -90,7 +90,7 @@ export default function FieldNotesSection({ jobId, dailyEntryId }) {
   }
 
   async function handleDelete(noteId) {
-    await deleteFieldNote(noteId)
+    await deleteFieldNote(noteId, user)
     setNotes((prev) => prev.filter((n) => n.id !== noteId))
   }
 
