@@ -101,12 +101,13 @@ export default function FieldNoteItem({
     }
   }
 
-  async function handlePhotoUpload(file) {
+  async function handlePhotoUpload(file, onProgress) {
     const url = await uploadFieldNotePhoto({
       file,
       jobId: note.jobId,
       dailyEntryId: note.dailyEntryId,
       fieldNoteId: note.id,
+      onProgress,
     })
     onPhotosChanged(note.id, (current) => [...current, url])
   }
