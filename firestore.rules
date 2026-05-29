@@ -1,0 +1,83 @@
+rules_version = '2';
+
+// Field Notes — Firestore security rules.
+//
+// Foundation-hardening baseline. Conservative on purpose:
+//   • Every collection is authenticated-only (no public reads/writes).
+//   • Creates must carry a non-empty companyId string (matches the
+//     TEMP_COMPANY_ID stamping every write already does).
+//   • The four "important" entities (jobs, dailyEntries, fieldNotes,
+//     surveySetups) cannot be hard-deleted by clients — deletion happens
+//     via a soft-delete update (deleted:true). This enforces the
+//     recoverable-delete contract at the database layer, not just in code.
+//   • Everything not matched below is denied.
+//
+// Real per-company isolation (membership lookups) is intentionally NOT
+// built here — there is a single TEMP_COMPANY_ID today. When company
+// membership lands, tighten signedIn()/companyId checks to compare against
+// the caller's company claim. See README "Temporary companyId".
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Creates must include a non-empty companyId string.
+    function hasCompany() {
+      return request.resource.data.companyId is string
+        && request.resource.data.companyId.size() > 0;
+    }
+
+    // Soft-delete-only collections: read/create/update for signed-in
+    // users; hard delete is forbidden (use a deleted:true update instead).
+    match /jobs/{jobId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && hasCompany();
+      allow update: if signedIn();
+      allow delete: if false;
+    }
+
+    match /dailyEntries/{entryId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && hasCompany();
+      allow update: if signedIn();
+      allow delete: if false;
+    }
+
+    match /fieldNotes/{noteId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && hasCompany();
+      allow update: if signedIn();
+      allow delete: if false;
+    }
+
+    match /surveySetups/{setupId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && hasCompany();
+      allow update: if signedIn();
+      allow delete: if false;
+    }
+
+    // Line-item / file-backed collections: hard delete is allowed because
+    // these are not in the named soft-delete set (shots are edited within a
+    // setup; documents own a Storage file cleaned up alongside deletion).
+    match /surveyShots/{shotId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && hasCompany();
+      allow update, delete: if signedIn();
+    }
+
+    match /documents/{documentId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && hasCompany();
+      allow update, delete: if signedIn();
+    }
+
+    // Default deny — anything not explicitly matched above is inaccessible.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

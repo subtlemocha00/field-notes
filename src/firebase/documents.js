@@ -16,7 +16,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore'
 import { storage, db } from './firebase.js'
-import { TEMP_COMPANY_ID } from './jobs.js'
+import { TEMP_COMPANY_ID, SCHEMA_VERSION, isNotDeleted } from './audit.js'
 
 export const DOCUMENT_TYPES = ['drawing', 'tender', 'specifications']
 
@@ -70,7 +70,9 @@ function mapDocument(snapshot) {
     fileSize: typeof data.fileSize === 'number' ? data.fileSize : 0,
     uploadedBy: data.uploadedBy || null,
     uploadedByName: data.uploadedByName || '',
-    uploadedAt: data.uploadedAt || null
+    uploadedAt: data.uploadedAt || null,
+    schemaVersion: data.schemaVersion ?? 0,
+    deleted: data.deleted === true
   }
 }
 
@@ -81,11 +83,12 @@ export async function listJobDocuments(jobId) {
     orderBy('uploadedAt', 'desc')
   )
   const result = await getDocs(q)
-  return result.docs.map(mapDocument)
+  return result.docs.filter((d) => isNotDeleted(d.data())).map(mapDocument)
 }
 
 export async function uploadJobDocument({ file, jobId, documentType, user }) {
   if (!file) throw new Error('No file selected.')
+  if (!jobId) throw new Error('A job is required to upload a document.')
   if (!DOCUMENT_TYPES.includes(documentType)) {
     throw new Error('Invalid document type.')
   }
@@ -111,7 +114,9 @@ export async function uploadJobDocument({ file, jobId, documentType, user }) {
       fileSize: file.size || 0,
       uploadedBy: user?.uid || null,
       uploadedByName: user?.displayName || user?.email || '',
-      uploadedAt: serverTimestamp()
+      uploadedAt: serverTimestamp(),
+      schemaVersion: SCHEMA_VERSION,
+      deleted: false
     })
     return {
       id: docRef.id,
@@ -124,7 +129,9 @@ export async function uploadJobDocument({ file, jobId, documentType, user }) {
       fileSize: file.size || 0,
       uploadedBy: user?.uid || null,
       uploadedByName: user?.displayName || user?.email || '',
-      uploadedAt: null
+      uploadedAt: null,
+      schemaVersion: SCHEMA_VERSION,
+      deleted: false
     }
   } catch (err) {
     try {

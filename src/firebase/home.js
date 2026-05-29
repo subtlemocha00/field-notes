@@ -8,6 +8,7 @@ import {
 } from 'firebase/firestore'
 import { db } from './firebase.js'
 import { listJobs } from './jobs.js'
+import { isNotDeleted } from './audit.js'
 
 const dailyEntriesCollection = collection(db, 'dailyEntries')
 
@@ -28,7 +29,9 @@ async function listRecentCompanyEntries(companyId) {
     limit(RECENT_ENTRIES_LIMIT)
   )
   const result = await getDocs(q)
-  return result.docs.map((snap) => {
+  // Soft-deleted entries must not drive "Continue Working" / "Missing
+  // Summaries". Legacy entries without the field remain included.
+  return result.docs.filter((snap) => isNotDeleted(snap.data())).map((snap) => {
     const data = snap.data()
     return {
       id: snap.id,

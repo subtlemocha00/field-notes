@@ -3,12 +3,14 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getJob, deleteJob } from '../firebase/jobs.js'
 import { listDailyEntries } from '../firebase/dailyEntries.js'
 import { formatDate } from '../utils/format.js'
+import { useAuth } from '../utils/AuthContext.jsx'
 import DailyEntryCard from '../components/DailyEntryCard.jsx'
 import DocumentsSection from '../components/DocumentsSection.jsx'
 
 export default function JobDetailPage() {
   const { jobId } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const [job, setJob] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -68,12 +70,12 @@ export default function JobDetailPage() {
   }, [jobId])
 
   async function handleDelete() {
-    if (!confirm(`Delete job "${job.jobNumber} – ${job.jobName}"? This cannot be undone.`)) {
+    if (!confirm(`Delete job "${job.jobNumber} – ${job.jobName}"? It will be hidden from your jobs list.`)) {
       return
     }
     setIsDeleting(true)
     try {
-      await deleteJob(jobId)
+      await deleteJob(jobId, user)
       navigate('/jobs', { replace: true })
     } catch (err) {
       console.error('Failed to delete job:', err)

@@ -5,6 +5,7 @@ import {
   updateDailyEntry,
   DuplicateDailyEntryError
 } from '../firebase/dailyEntries.js'
+import { useAuth } from '../utils/AuthContext.jsx'
 import WorkerRows from '../components/WorkerRows.jsx'
 import EquipmentRows from '../components/EquipmentRows.jsx'
 import CopyPreviousButton from '../components/CopyPreviousButton.jsx'
@@ -12,6 +13,7 @@ import CopyPreviousButton from '../components/CopyPreviousButton.jsx'
 export default function EditDailyEntryPage() {
   const { jobId, dailyEntryId } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const [date, setDate] = useState('')
   const [contractor, setContractor] = useState('')
@@ -75,7 +77,7 @@ export default function EditDailyEntryPage() {
         workers,
         equipment,
         notes
-      })
+      }, user)
       navigate(`/jobs/${jobId}/daily/${dailyEntryId}`, { replace: true })
     } catch (err) {
       console.error('Failed to update daily entry:', err)

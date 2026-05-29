@@ -3,17 +3,20 @@ import {
   doc,
   addDoc,
   updateDoc,
-  deleteDoc,
   getDoc,
   getDocs,
   query,
   where,
   orderBy,
-  limit,
-  serverTimestamp
+  limit
 } from 'firebase/firestore'
 import { db } from './firebase.js'
-import { TEMP_COMPANY_ID } from './jobs.js'
+import {
+  auditCreateFields,
+  auditUpdateFields,
+  softDeleteFields,
+  isNotDeleted
+} from './audit.js'
 
 const dailyEntriesCollection = collection(db, 'dailyEntries')
 
@@ -115,8 +118,11 @@ function mapEntry(snapshot) {
     notes: typeof data.notes === 'string' ? data.notes : '',
     createdBy: data.createdBy || null,
     createdByName: data.createdByName || '',
+    updatedBy: data.updatedBy || null,
     createdAt: data.createdAt,
-    updatedAt: data.updatedAt
+    updatedAt: data.updatedAt,
+    schemaVersion: data.schemaVersion ?? 0,
+    deleted: data.deleted === true
   }
 }
 
@@ -159,46 +165,54 @@ export async function listDailyEntries(jobId) {
     orderBy('date', 'desc')
   )
   const result = await getDocs(q)
-  return result.docs.map(mapEntry)
+  // Hide soft-deleted entries (legacy entries without the field stay visible).
+  return result.docs.filter((d) => isNotDeleted(d.data())).map(mapEntry)
 }
 
 export async function getDailyEntry(dailyEntryId) {
   const ref = doc(db, 'dailyEntries', dailyEntryId)
   const snapshot = await getDoc(ref)
   if (!snapshot.exists()) return null
+  if (!isNotDeleted(snapshot.data())) return null
   return mapEntry(snapshot)
 }
 
+// Used by the duplicate-date guard. Skips soft-deleted entries so a date
+// can be reused after its previous entry was deleted.
 async function findEntryByDate(jobId, date) {
   const q = query(
     dailyEntriesCollection,
     where('jobId', '==', jobId),
-    where('date', '==', date),
-    limit(1)
+    where('date', '==', date)
   )
   const result = await getDocs(q)
-  return result.docs[0] || null
+  return result.docs.find((d) => isNotDeleted(d.data())) || null
 }
 
 // Find the closest earlier daily entry (chronologically) for the same job.
 // Date strings are ISO `YYYY-MM-DD`, so lexical ordering matches date ordering.
 export async function getPreviousDailyEntry(jobId, currentDate) {
   if (!jobId || !currentDate) return null
+  // Pull a small window rather than limit(1): the immediately-prior entry
+  // might be soft-deleted, in which case we want the next one back.
   const q = query(
     dailyEntriesCollection,
     where('jobId', '==', jobId),
     where('date', '<', currentDate),
     orderBy('date', 'desc'),
-    limit(1)
+    limit(5)
   )
   const result = await getDocs(q)
-  const snapshot = result.docs[0]
+  const snapshot = result.docs.find((d) => isNotDeleted(d.data()))
   return snapshot ? mapEntry(snapshot) : null
 }
 
 // ---------- Mutations ----------
 
 export async function createDailyEntry(jobId, fields, user) {
+  if (!jobId) {
+    throw new Error('A job is required to create a daily entry.')
+  }
   const date = (fields.date || '').trim()
   if (!date) {
     throw new Error('Date is required.')
@@ -209,9 +223,7 @@ export async function createDailyEntry(jobId, fields, user) {
     throw new DuplicateDailyEntryError(date)
   }
 
-  const now = serverTimestamp()
   const docRef = await addDoc(dailyEntriesCollection, {
-    companyId: TEMP_COMPANY_ID,
     jobId,
     date,
     contractor: (fields.contractor || '').trim(),
@@ -220,15 +232,12 @@ export async function createDailyEntry(jobId, fields, user) {
     workers: sanitizeWorkers(fields.workers),
     equipment: sanitizeEquipment(fields.equipment),
     notes: (fields.notes || '').trim(),
-    createdBy: user?.uid || null,
-    createdByName: user?.displayName || user?.email || '',
-    createdAt: now,
-    updatedAt: now
+    ...auditCreateFields(user)
   })
   return docRef.id
 }
 
-export async function updateDailyEntry(dailyEntryId, jobId, fields) {
+export async function updateDailyEntry(dailyEntryId, jobId, fields, user) {
   const date = (fields.date || '').trim()
   if (!date) {
     throw new Error('Date is required.')
@@ -248,11 +257,13 @@ export async function updateDailyEntry(dailyEntryId, jobId, fields) {
     workers: sanitizeWorkers(fields.workers),
     equipment: sanitizeEquipment(fields.equipment),
     notes: (fields.notes || '').trim(),
-    updatedAt: serverTimestamp()
+    ...auditUpdateFields(user)
   })
 }
 
-export async function deleteDailyEntry(dailyEntryId) {
+// Soft delete — hidden from listings but recoverable. Field notes and
+// survey data attached to this entry remain in Firestore.
+export async function deleteDailyEntry(dailyEntryId, user) {
   const ref = doc(db, 'dailyEntries', dailyEntryId)
-  await deleteDoc(ref)
+  await updateDoc(ref, softDeleteFields(user))
 }

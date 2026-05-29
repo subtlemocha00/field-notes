@@ -1,0 +1,29 @@
+rules_version = '2';
+
+// Field Notes — Firebase Storage security rules.
+//
+// Hardens the README's earlier "authenticated, any path" baseline:
+//   • Reads/writes are confined to the company-scoped path prefix the app
+//     actually uses: companies/{companyId}/...
+//   • Writes are capped at 50 MB (matches MAX_DOCUMENT_BYTES; photos are
+//     smaller still) to prevent oversized uploads.
+//   • Everything outside companies/** is denied.
+//
+// Per-company isolation against a real membership claim is future work;
+// today there is a single TEMP_COMPANY_ID. See README "Temporary companyId".
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    match /companies/{companyId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+        && request.resource.size < 50 * 1024 * 1024;
+    }
+
+    // Default deny — no access outside the companies/ prefix.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
