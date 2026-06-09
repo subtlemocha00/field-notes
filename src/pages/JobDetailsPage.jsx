@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getJob } from '../firebase/jobs.js'
-import { getJobDetails, saveRoadMakeup } from '../firebase/jobDetails.js'
+import { getJobDetails, saveRoadMakeup, emptySewer } from '../firebase/jobDetails.js'
 import { useAuth } from '../utils/AuthContext.jsx'
+import SewerCard from '../components/SewerCard.jsx'
 
 const EMPTY_ROAD_MAKEUP = {
   topAsphaltType: '',
@@ -38,6 +39,8 @@ export default function JobDetailsPage() {
 
   const [job, setJob] = useState(null)
   const [roadMakeup, setRoadMakeup] = useState(EMPTY_ROAD_MAKEUP)
+  const [sanitarySewers, setSanitarySewers] = useState(emptySewer())
+  const [stormSewers, setStormSewers] = useState(emptySewer())
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
@@ -67,6 +70,8 @@ export default function JobDetailsPage() {
         const rm = detailsResult?.roadMakeup ?? EMPTY_ROAD_MAKEUP
         savedSnapshotRef.current = rm
         setRoadMakeup(rm)
+        setSanitarySewers(detailsResult?.sanitarySewers ?? emptySewer())
+        setStormSewers(detailsResult?.stormSewers ?? emptySewer())
         // No saved data → open the form immediately so the user can fill it in.
         setIsEditing(!hasRoadMakeupData(rm))
       } catch (err) {
@@ -336,6 +341,22 @@ export default function JobDetailsPage() {
         </div>
 
       )}
+
+      <SewerCard
+        jobId={jobId}
+        user={user}
+        sectionKey="sanitarySewers"
+        title="Sanitary Sewers"
+        initialData={sanitarySewers}
+      />
+
+      <SewerCard
+        jobId={jobId}
+        user={user}
+        sectionKey="stormSewers"
+        title="Storm Sewers"
+        initialData={stormSewers}
+      />
 
     </div>
   )

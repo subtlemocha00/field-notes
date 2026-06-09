@@ -64,3 +64,50 @@
   width: 100%;
   margin: 0;
 }
+
+/* ── Sewer card — pipe entry list (edit mode) ── */
+
+/* Stack of pipe entry blocks */
+.sewer-entries {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Each individual pipe entry (size + material/custom + Remove) */
+.sewer-entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background-color: var(--color-surface-alt, var(--color-bg));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+/* Remove button — left-aligned, smaller than full-width */
+.sewer-entry__remove {
+  align-self: flex-start;
+}
+
+/* Add Pipe Entry button — full-width for easy mobile tap */
+.sewer-add-entry {
+  width: 100%;
+  margin-top: var(--space-3);
+}
+
+/* ── Sewer card — pipe list (view mode) ── */
+
+.sewer-pipe-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sewer-pipe-list li::before {
+  content: '· ';
+  color: var(--color-text-muted);
+}
