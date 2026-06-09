@@ -1,7 +1,7 @@
 /* ── Job Details page ─────────────────────────────────────────
    Styles for the rd-* (road details) components used exclusively
    on JobDetailsPage. Reuses .card, .stack, .field, .field__label,
-   .input, .btn, .section-header from global stylesheets.
+   .input, .btn, .section-header, .detail-row from global sheets.
    ──────────────────────────────────────────────────────────── */
 
 /* ── Layer block (Top Asphalt, Base Asphalt, Granular A/B) ── */
@@ -18,8 +18,8 @@
   border-bottom: none;
 }
 
-/* Layer name — mono micro-caps, slightly darker than field labels
-   so it reads as a sub-section heading, not just another label.  */
+/* Layer name — mono micro-caps, full text color so it reads as a
+   sub-section heading rather than just another field label.     */
 .rd-layer__name {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -51,7 +51,7 @@
   flex-shrink: 0;
 }
 
-/* ── Save row ── */
+/* ── Edit-state action row (Save / Cancel) ── */
 .rd-actions {
   display: flex;
   align-items: center;
@@ -59,17 +59,7 @@
   flex-wrap: wrap;
 }
 
-/* "Saved" confirmation — appears briefly after a successful save,
-   clears when the user makes any edit.                          */
-.rd-saved {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--color-success);
-}
-
-/* Error message sits on its own line when wrapping */
+/* Error message drops to its own line when the row wraps */
 .rd-actions__error {
   width: 100%;
   margin: 0;
