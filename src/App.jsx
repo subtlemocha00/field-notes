@@ -16,6 +16,7 @@ import DailyEntrySummaryPage from './pages/DailyEntrySummaryPage.jsx'
 import DailyEntryNotesPage from './pages/DailyEntryNotesPage.jsx'
 import DailyEntrySurveyPage from './pages/DailyEntrySurveyPage.jsx'
 import EditDailyEntryPage from './pages/EditDailyEntryPage.jsx'
+import JobDetailsPage from './pages/JobDetailsPage.jsx'
 
 function ConfigError({ message }) {
   return (
@@ -56,6 +57,7 @@ export default function App() {
               <Route path="jobs/new" element={<CreateJobPage />} />
               <Route path="jobs/:jobId" element={<JobDetailPage />} />
               <Route path="jobs/:jobId/edit" element={<EditJobPage />} />
+              <Route path="jobs/:jobId/details" element={<JobDetailsPage />} />
               <Route path="jobs/:jobId/daily/new" element={<CreateDailyEntryPage />} />
               <Route path="jobs/:jobId/daily/:dailyEntryId" element={<DailyEntryPage />} />
               <Route path="jobs/:jobId/daily/:dailyEntryId/summary" element={<DailyEntrySummaryPage />} />

@@ -13,6 +13,7 @@ import './css/photos.css'
 import './css/survey.css'
 import './css/home.css'
 import './css/documents.css'
+import './css/job-details.css'
 
 function FatalError({ message }) {
   return (

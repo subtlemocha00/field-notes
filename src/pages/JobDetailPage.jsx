@@ -183,6 +183,13 @@ export default function JobDetailPage() {
       )}
 
       <div className="section-header">
+        <h2>Details</h2>
+        <Link to={`/jobs/${jobId}/details`} className="btn btn--secondary">
+          View
+        </Link>
+      </div>
+
+      <div className="section-header">
         <h2>Documents</h2>
       </div>
 
