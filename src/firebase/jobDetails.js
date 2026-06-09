@@ -73,6 +73,7 @@ export async function getJobDetails(jobId) {
     roadMakeup: mapRoadMakeup(data?.details?.roadMakeup),
     sanitarySewers: mapSewer(data?.details?.sanitarySewers),
     stormSewers: mapSewer(data?.details?.stormSewers),
+    watermain: mapSewer(data?.details?.watermain),
   }
 }
 

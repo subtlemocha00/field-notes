@@ -1,19 +1,26 @@
 import { useState, useRef } from 'react'
 import { saveSewer } from '../firebase/jobDetails.js'
 
-const PIPE_SIZE_OPTIONS = [
+// ── Default option lists (sewer cards) ────────────────────────
+// Callers can override any of these via props.
+
+const DEFAULT_PIPE_SIZE_OPTIONS = [
   '200mm', '250mm', '300mm', '375mm', '450mm', '525mm', '600mm', '675mm',
   '750mm', '825mm', '900mm', '975mm', '1050mm', '1200mm', '1350mm', '1500mm',
   '1650mm', '1800mm', '1950mm', '2100mm', '2250mm', '2400mm', '3000mm', 'Custom',
 ]
 
-const STANDARD_MATERIALS = ['PVC', 'Concrete']
+const DEFAULT_MATERIAL_OPTIONS = ['PVC', 'Concrete']
 
-const BEDDING_OPTIONS = ["Granular 'A'", "Granular 'B'", "Granular 'C'", '3/4" Stone', 'Custom']
+const DEFAULT_BEDDING_OPTIONS = [
+  "Granular 'A'", "Granular 'B'", "Granular 'C'", '3/4" Stone', 'Custom',
+]
 
-const COVER_OPTIONS = [
+const DEFAULT_COVER_OPTIONS = [
   "Granular 'A'", "Granular 'B'", "Granular 'C'", '3/4" Stone', 'Native Fill', 'Custom',
 ]
+
+// ── Helpers ────────────────────────────────────────────────────
 
 function hasSewerData(sewer) {
   return (
@@ -23,7 +30,6 @@ function hasSewerData(sewer) {
   )
 }
 
-// Manual deep clone — avoids structuredClone browser-version concerns.
 function cloneSewer(s) {
   return { ...s, pipeEntries: s.pipeEntries.map((e) => ({ ...e })) }
 }
@@ -34,17 +40,27 @@ function pipeEntryLabel(entry) {
   return entry.material ? `${entry.size} ${entry.material}` : entry.size
 }
 
-// Resolves display string for bedding/cover in view mode.
 function displayValue(main, custom) {
   if (!main) return '—'
   return main === 'Custom' ? (custom || '—') : main
 }
 
 // ── SewerCard ─────────────────────────────────────────────────
-// Reusable card implementing the same view/edit toggle pattern as
-// Road Makeup. sectionKey is 'sanitarySewers' or 'stormSewers'.
+// Generic pipe-section card. sectionKey maps to the Firestore
+// field name (e.g. 'sanitarySewers', 'watermain').
+// Pass coverOptions={null} to hide the Cover section entirely.
 
-export default function SewerCard({ jobId, user, sectionKey, title, initialData }) {
+export default function SewerCard({
+  jobId,
+  user,
+  sectionKey,
+  title,
+  initialData,
+  pipeSizeOptions = DEFAULT_PIPE_SIZE_OPTIONS,
+  materialOptions = DEFAULT_MATERIAL_OPTIONS,
+  beddingOptions = DEFAULT_BEDDING_OPTIONS,
+  coverOptions = DEFAULT_COVER_OPTIONS,
+}) {
   const [sewer, setSewer] = useState(initialData)
   const [isEditing, setIsEditing] = useState(!hasSewerData(initialData))
   const [isSaving, setIsSaving] = useState(false)
@@ -74,8 +90,6 @@ export default function SewerCard({ jobId, user, sectionKey, title, initialData 
       pipeEntries: [...prev.pipeEntries, { size: '', material: '', customMaterial: '' }],
     }))
   }
-
-  // ── Field handler ────────────────────────────────────────────
 
   function handleChange(field, value) {
     setSewer((prev) => ({ ...prev, [field]: value }))
@@ -165,7 +179,7 @@ export default function SewerCard({ jobId, user, sectionKey, title, initialData 
                           disabled={isSaving}
                         >
                           <option value="">Select size…</option>
-                          {PIPE_SIZE_OPTIONS.map((opt) => (
+                          {pipeSizeOptions.map((opt) => (
                             <option key={opt} value={opt}>{opt}</option>
                           ))}
                         </select>
@@ -181,7 +195,7 @@ export default function SewerCard({ jobId, user, sectionKey, title, initialData 
                             disabled={isSaving}
                           >
                             <option value="">Select material…</option>
-                            {STANDARD_MATERIALS.map((mat) => (
+                            {materialOptions.map((mat) => (
                               <option key={mat} value={mat}>{mat}</option>
                             ))}
                           </select>
@@ -239,7 +253,7 @@ export default function SewerCard({ jobId, user, sectionKey, title, initialData 
                   disabled={isSaving}
                 >
                   <option value="">Select…</option>
-                  {BEDDING_OPTIONS.map((opt) => (
+                  {beddingOptions.map((opt) => (
                     <option key={opt} value={opt}>{opt}</option>
                   ))}
                 </select>
@@ -259,37 +273,39 @@ export default function SewerCard({ jobId, user, sectionKey, title, initialData 
               )}
             </div>
 
-            {/* Cover */}
-            <div className="rd-layer">
-              <div className="rd-layer__name">Cover</div>
-              <div className="field">
-                <label className="field__label">Material</label>
-                <select
-                  className="input"
-                  value={sewer.cover}
-                  onChange={(e) => handleChange('cover', e.target.value)}
-                  disabled={isSaving}
-                >
-                  <option value="">Select…</option>
-                  {COVER_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
-              </div>
-              {sewer.cover === 'Custom' && (
+            {/* Cover — omitted when coverOptions is null */}
+            {coverOptions && (
+              <div className="rd-layer">
+                <div className="rd-layer__name">Cover</div>
                 <div className="field">
-                  <label className="field__label">Custom Cover</label>
-                  <input
+                  <label className="field__label">Material</label>
+                  <select
                     className="input"
-                    type="text"
-                    value={sewer.coverCustom}
-                    onChange={(e) => handleChange('coverCustom', e.target.value)}
-                    placeholder="Describe cover material"
+                    value={sewer.cover}
+                    onChange={(e) => handleChange('cover', e.target.value)}
                     disabled={isSaving}
-                  />
+                  >
+                    <option value="">Select…</option>
+                    {coverOptions.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
                 </div>
-              )}
-            </div>
+                {sewer.cover === 'Custom' && (
+                  <div className="field">
+                    <label className="field__label">Custom Cover</label>
+                    <input
+                      className="input"
+                      type="text"
+                      value={sewer.coverCustom}
+                      onChange={(e) => handleChange('coverCustom', e.target.value)}
+                      placeholder="Describe cover material"
+                      disabled={isSaving}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
           </div>
 
@@ -342,12 +358,14 @@ export default function SewerCard({ jobId, user, sectionKey, title, initialData 
               {displayValue(sewer.bedding, sewer.beddingCustom)}
             </div>
           </div>
-          <div className="detail-row">
-            <div className="detail-row__label">Cover</div>
-            <div className="detail-row__value">
-              {displayValue(sewer.cover, sewer.coverCustom)}
+          {coverOptions && (
+            <div className="detail-row">
+              <div className="detail-row__label">Cover</div>
+              <div className="detail-row__value">
+                {displayValue(sewer.cover, sewer.coverCustom)}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
       )}

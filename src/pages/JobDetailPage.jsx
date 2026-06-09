@@ -182,12 +182,14 @@ export default function JobDetailPage() {
         </div>
       )}
 
-      <div className="section-header">
-        <h2>Details</h2>
-        <Link to={`/jobs/${jobId}/details`} className="btn btn--secondary">
-          View
-        </Link>
-      </div>
+      <Link to={`/jobs/${jobId}/details`} className="entry-hub-card">
+        <span className="entry-hub-card__icon">📋</span>
+        <div className="entry-hub-card__body">
+          <span className="entry-hub-card__title">Details</span>
+          <span className="entry-hub-card__desc">Road makeup · sewers · specifications</span>
+        </div>
+        <span className="entry-hub-card__arrow">›</span>
+      </Link>
 
       <div className="section-header">
         <h2>Documents</h2>

@@ -5,6 +5,14 @@ import { getJobDetails, saveRoadMakeup, emptySewer } from '../firebase/jobDetail
 import { useAuth } from '../utils/AuthContext.jsx'
 import SewerCard from '../components/SewerCard.jsx'
 
+const WATERMAIN_PIPE_SIZES = [
+  '25mm', '50mm', '150mm', '200mm', '250mm', '300mm', '375mm', '450mm', 'Custom',
+]
+
+const WATERMAIN_MATERIALS = ['HDPE', 'PEX']
+
+const WATERMAIN_BEDDING_OPTIONS = ["Granular 'A'", "Granular 'C'", 'Custom']
+
 const EMPTY_ROAD_MAKEUP = {
   topAsphaltType: '',
   topAsphaltThickness: '',
@@ -41,6 +49,7 @@ export default function JobDetailsPage() {
   const [roadMakeup, setRoadMakeup] = useState(EMPTY_ROAD_MAKEUP)
   const [sanitarySewers, setSanitarySewers] = useState(emptySewer())
   const [stormSewers, setStormSewers] = useState(emptySewer())
+  const [watermain, setWatermain] = useState(emptySewer())
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
@@ -72,6 +81,7 @@ export default function JobDetailsPage() {
         setRoadMakeup(rm)
         setSanitarySewers(detailsResult?.sanitarySewers ?? emptySewer())
         setStormSewers(detailsResult?.stormSewers ?? emptySewer())
+        setWatermain(detailsResult?.watermain ?? emptySewer())
         // No saved data → open the form immediately so the user can fill it in.
         setIsEditing(!hasRoadMakeupData(rm))
       } catch (err) {
@@ -356,6 +366,18 @@ export default function JobDetailsPage() {
         sectionKey="stormSewers"
         title="Storm Sewers"
         initialData={stormSewers}
+      />
+
+      <SewerCard
+        jobId={jobId}
+        user={user}
+        sectionKey="watermain"
+        title="Watermain"
+        initialData={watermain}
+        pipeSizeOptions={WATERMAIN_PIPE_SIZES}
+        materialOptions={WATERMAIN_MATERIALS}
+        beddingOptions={WATERMAIN_BEDDING_OPTIONS}
+        coverOptions={null}
       />
 
     </div>
