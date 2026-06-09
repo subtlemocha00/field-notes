@@ -18,7 +18,8 @@ function formatSize(bytes) {
 }
 
 export default function PhotoUploader({ disabled, onUpload }) {
-  const inputRef = useRef(null)
+  const galleryInputRef = useRef(null)
+  const cameraInputRef = useRef(null)
   // Track mount state so we never call setState after unmount (e.g. when the
   // user collapses the photos section while an upload is in flight).
   const mountedRef = useRef(true)
@@ -91,28 +92,52 @@ export default function PhotoUploader({ disabled, onUpload }) {
 
   return (
     <div className="photo-uploader">
+      {/* Camera capture — capture="environment" targets the rear camera directly.
+          On Android this bypasses the file picker and launches the camera app.
+          0-byte results from memory pressure are caught below in handleFileChange. */}
       <input
-        ref={inputRef}
+        ref={cameraInputRef}
         type="file"
         accept="image/*"
-        // capture="environment" intentionally omitted.
-        // That attribute forces the Android camera Activity to open instead
-        // of the native file picker, which causes silent upload failures when
-        // Android reclaims memory while the camera is open. The browser's
-        // own picker offers camera + gallery without the lifecycle risk.
+        capture="environment"
         onChange={handleFileChange}
         disabled={disabled || isUploading}
         className="visually-hidden"
-        aria-label="Photo file"
+        aria-label="Take photo with camera"
       />
-      <button
-        type="button"
-        className="btn btn--secondary photo-uploader__btn"
-        onClick={() => inputRef.current?.click()}
+      {/* Gallery / file picker — no capture so the OS shows its normal chooser */}
+      <input
+        ref={galleryInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
         disabled={disabled || isUploading}
-      >
-        {isUploading ? progressLabel || 'Uploading…' : 'Add photo'}
-      </button>
+        className="visually-hidden"
+        aria-label="Choose photo from gallery"
+      />
+      <div className="photo-uploader__buttons">
+        <button
+          type="button"
+          className="btn btn--secondary photo-uploader__btn"
+          onClick={() => cameraInputRef.current?.click()}
+          disabled={disabled || isUploading}
+        >
+          Take photo
+        </button>
+        <button
+          type="button"
+          className="btn btn--secondary photo-uploader__btn"
+          onClick={() => galleryInputRef.current?.click()}
+          disabled={disabled || isUploading}
+        >
+          Add from gallery
+        </button>
+      </div>
+      {isUploading && (
+        <p className="photo-uploader__progress" aria-live="polite">
+          {progressLabel || 'Uploading…'}
+        </p>
+      )}
       {error && (
         <p className="form__error photo-uploader__error" role="alert">
           {error}
